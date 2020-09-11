@@ -51,7 +51,7 @@ function startup(logger) {
   requestWithDefaults = request.defaults(defaults);
 }
 
-function _convertPolarityTypeToIlluminateType(entity) {
+function _convertPolarityTypeToAnalyst1Type(entity) {
   switch (entity.type) {
     case 'IPv4':
       return 'ip';
@@ -74,7 +74,7 @@ function getIndicatorMatchRequestOptions(entity, options) {
     uri: `${url}api/1_0/indicator/match`,
     qs: {
       value: entity.value,
-      type: _convertPolarityTypeToIlluminateType(entity)
+      type: _convertPolarityTypeToAnalyst1Type(entity)
     },
     auth: {
       user: options.userName,
