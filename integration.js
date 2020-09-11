@@ -267,10 +267,10 @@ function getActorById(entity, actor, options, cb) {
     json: true
   };
 
-  Logger.info({ requestOptions }, 'getActorById');
+  Logger.trace({ requestOptions }, 'getActorById');
   requestWithDefaults(requestOptions, (error, result, body) => {
     let processedResult = handleRestError(error, entity, result, body);
-    Logger.info({ processedResult }, 'Processed Result');
+    Logger.trace({ processedResult }, 'Processed Result');
     if (processedResult.error) {
       cb(processedResult);
       return;
@@ -303,7 +303,7 @@ function onDetails(lookupResult, options, cb) {
         return cb(err);
       }
       lookupResult.data.details.results = actors;
-      Logger.info({ 'block.data.details.results': lookupResult.data.details.results }, 'onDetails Result');
+      Logger.trace({ 'block.data.details.results': lookupResult.data.details.results }, 'onDetails Result');
       cb(err, lookupResult.data);
     }
   );
