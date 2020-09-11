@@ -345,8 +345,36 @@ function handleRestError(error, entity, res, body) {
   return result;
 }
 
+function validateOptions(options, cb) {
+  let errors = [];
+
+  if (typeof options.url.value !== 'string' || options.url.value.length === 0) {
+    errors.push({
+      key: 'url',
+      message: 'You must provide a valid url'
+    });
+  }
+
+  if (typeof options.userName.value !== 'string' || options.userName.value.length === 0) {
+    errors.push({
+      key: 'userName',
+      message: 'You must provide a valid Analyst1 username'
+    });
+  }
+
+  if (typeof options.password.value !== 'string' || options.password.value.length === 0) {
+    errors.push({
+      key: 'password',
+      message: 'You must provide valid an Analyst1 password'
+    });
+  }
+
+  cb(null, errors);
+}
+
 module.exports = {
   doLookup,
   startup,
-  onDetails
+  onDetails,
+  validateOptions
 };
