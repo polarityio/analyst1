@@ -51,7 +51,7 @@ function startup(logger) {
   requestWithDefaults = request.defaults(defaults);
 }
 
-function _convertPolarityTypeToIlluminateType(entity) {
+function _convertPolarityTypeToAnalyst1Type(entity) {
   switch (entity.type) {
     case 'IPv4':
       return 'ip';
@@ -74,7 +74,7 @@ function getIndicatorMatchRequestOptions(entity, options) {
     uri: `${url}api/1_0/indicator/match`,
     qs: {
       value: entity.value,
-      type: _convertPolarityTypeToIlluminateType(entity)
+      type: _convertPolarityTypeToAnalyst1Type(entity)
     },
     auth: {
       user: options.userName,
@@ -267,10 +267,10 @@ function getActorById(entity, actor, options, cb) {
     json: true
   };
 
-  Logger.info({ requestOptions }, 'getActorById');
+  Logger.trace({ requestOptions }, 'getActorById');
   requestWithDefaults(requestOptions, (error, result, body) => {
     let processedResult = handleRestError(error, entity, result, body);
-    Logger.info({ processedResult }, 'Processed Result');
+    Logger.trace({ processedResult }, 'Processed Result');
     if (processedResult.error) {
       cb(processedResult);
       return;
@@ -303,7 +303,7 @@ function onDetails(lookupResult, options, cb) {
         return cb(err);
       }
       lookupResult.data.details.results = actors;
-      Logger.info({ 'block.data.details.results': lookupResult.data.details.results }, 'onDetails Result');
+      Logger.trace({ 'block.data.details.results': lookupResult.data.details.results }, 'onDetails Result');
       cb(err, lookupResult.data);
     }
   );
@@ -345,8 +345,36 @@ function handleRestError(error, entity, res, body) {
   return result;
 }
 
+function validateOptions(options, cb) {
+  let errors = [];
+
+  if (typeof options.url.value !== 'string' || options.url.value.length === 0) {
+    errors.push({
+      key: 'url',
+      message: 'You must provide a valid url'
+    });
+  }
+
+  if (typeof options.userName.value !== 'string' || options.userName.value.length === 0) {
+    errors.push({
+      key: 'userName',
+      message: 'You must provide a valid Analyst1 username'
+    });
+  }
+
+  if (typeof options.password.value !== 'string' || options.password.value.length === 0) {
+    errors.push({
+      key: 'password',
+      message: 'You must provide valid an Analyst1 password'
+    });
+  }
+
+  cb(null, errors);
+}
+
 module.exports = {
   doLookup,
   startup,
-  onDetails
+  onDetails,
+  validateOptions
 };

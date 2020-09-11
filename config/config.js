@@ -5,7 +5,7 @@ module.exports = {
    * @type String
    * @required
    */
-  name: 'illuminate Indicator Lookup',
+  name: 'Analyst1 Platform',
   /**
    * The acronym that appears in the notification window when information from this integration
    * is displayed.  Note that the acronym is included as part of each "tag" in the summary information
@@ -15,14 +15,14 @@ module.exports = {
    * @type String
    * @required
    */
-  acronym: 'ILL',
+  acronym: 'AN1',
   /**
    * Description for this integration which is displayed in the Polarity integrations user interface
    *
    * @type String
    * @optional
    */
-  description: 'illuminate is a threat intelligence platform',
+  description: 'Analyst1 is a threat intelligence platform',
   entityTypes: ['IPv4', 'IPv6', 'domain', 'hash', 'email', 'cve'],
   /**
    * Provide custom component logic and template for rendering the integration details block.  If you do not
@@ -75,8 +75,8 @@ module.exports = {
   options: [
     {
       key: 'url',
-      name: 'illuminate API URL',
-      description: 'The base URL for the illuminate API to include the schema (https://) and port as needed',
+      name: 'Analyst1 API URL',
+      description: 'The base URL for the Analyst1 API to include the schema (https://) and port as needed',
       default: '',
       type: 'text',
       userCanEdit: false,
@@ -85,7 +85,7 @@ module.exports = {
     {
       key: 'userName',
       name: 'User Name',
-      description: 'Valid illuminate Username',
+      description: 'Valid Analyst1 Username',
       default: '',
       type: 'text',
       userCanEdit: false,
@@ -94,7 +94,7 @@ module.exports = {
     {
       key: 'password',
       name: 'Password',
-      description: 'Valid illuminate Password',
+      description: 'Valid Analyst1 Password',
       default: '',
       type: 'password',
       userCanEdit: false,

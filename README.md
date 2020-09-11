@@ -1,24 +1,24 @@
-# Polarity illuminate Integration
+# Polarity Analyst1 Integration
 
-The Polarity illuminate integration allows Polarity to quickly identify indicators and CVEs contained within the illuminate platform.
+The Polarity Analyst1 integration allows Polarity to quickly identify indicators and CVEs contained within the Analyst1 platform.
 
 | ![overlay window](assets/overlay.png) | ![risk history](assets/cve.png) |
 |---|--|
-|*illuminate Indicator results* | *illuminate CVE results* |
+|*Analyst1 Indicator results* | *Analyst1 CVE results* |
 
-## illuminate Integration Options
+## Analyst1 Integration Options
 
-### illuminate API URL
+### Analyst1 API URL
 
-The base URL for the illuminate API to include the schema (https://) and port as needed
+The base URL for the Analyst1 API to include the schema (https://) and port as needed
 
 ### User Name
 
-Valid illuminate Username
+Valid Analyst1 Username
 
 ### Password
 
-Valid illuminate Password
+Valid Analyst1 Password
 
 ### Match Indicator Values
 
