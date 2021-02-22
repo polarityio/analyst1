@@ -1,6 +1,6 @@
 # Polarity Analyst1 Integration
 
-The Polarity Analyst1 integration allows Polarity to quickly identify indicators and CVEs contained within the Analyst1 platform.
+The Polarity <> Analyst1 integration allows Polarity to get quick identification of Indicators and CVEs associated to Actors, Malware, and MITRE ATT&CK from the Analyst1 platform. Analyst1 maintains a comprehensive threat intelligence archive from free, paid, and internal sources powered by NLP automation and analyst curation. Analyst1 provides total data provenance in control by the customer, greatly increasing the simplicity of access and depth of data available for Polarity’s augmented views to end users.
 
 | ![overlay window](assets/overlay.png) | ![risk history](assets/cve.png) |
 |---|--|
