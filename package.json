@@ -4,8 +4,9 @@
   "version": "3.2.4-beta",
   "private": true,
   "dependencies": {
-    "request": "^2.88.2",
     "async": "^3.2.0",
-    "lodash.get": "^4.4.2"
+    "lodash": "^4.17.21",
+    "lodash.get": "^4.4.2",
+    "request": "^2.88.2"
   }
 }

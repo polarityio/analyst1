@@ -32,4 +32,4 @@ node_modules/
 
 #Ignore VSCode files
 *.history
-*.VSCode
+*.VSCode.DS_Store
