@@ -7,7 +7,6 @@ const async = require('async');
 const fs = require('fs');
 const fp = require('lodash/fp');
 const _ = require('lodash');
-const { result } = require('lodash');
 
 let Logger;
 let requestWithDefaults;
@@ -87,14 +86,14 @@ function getIndicatorBulkMatchRequestOptions(entityType, entityValue, options) {
   };
 }
 
-function getSearchRequestOptions(entity, options) {
+function getSearchRequestOptions(entityValue, options) {
   const url = options.url.endsWith('/') ? options.url : `${options.url}/`;
 
   return {
     method: 'GET',
     uri: `${url}api/1_0/indicator`,
     qs: {
-      searchTerm: entity.value
+      searchTerm: entityValue
     },
     auth: {
       user: options.userName,
@@ -104,14 +103,14 @@ function getSearchRequestOptions(entity, options) {
   };
 }
 
-function getCveSearchOptions(entity, options) {
+function getCveSearchOptions(entityValue, options) {
   const url = options.url.endsWith('/') ? options.url : `${options.url}/`;
 
   return {
     method: 'GET',
     uri: `${url}api/1_0/actor`,
     qs: {
-      cve: entity.value
+      cve: entityValue
     },
     auth: {
       user: options.userName,
@@ -131,11 +130,9 @@ const getEntityValuesForQuery = (entities) => {
   }
   return queryParamValues;
 };
-
 function doLookup(entities, options, cb) {
   let lookupResults = [];
   let tasks = [];
-  let requestOptions;
   let processedResult;
   const entityLookup = new Map();
 
@@ -143,18 +140,23 @@ function doLookup(entities, options, cb) {
 
   for (const entity of entities) {
     entityLookup.set(entity.value.toLowerCase(), entity);
-
-    // if (entity.type === 'cve') {
-    //   requestOptions = getCveSearchOptions(entity, options);
-    // } else if (!options.doIndicatorMatchSearch) {
-    //   requestOptions = getSearchRequestOptions(entity, options);
-    // }
   }
 
   const queryValues = getEntityValuesForQuery(entities);
 
   for (const [entityType, entityValue] of Object.entries(queryValues)) {
     tasks.push((done) => {
+      let requestOptions;
+
+      if (entityType === 'cve') {
+        requestOptions = getCveSearchOptions(entityValue, options);
+      }
+
+      Logger.trace({ OPTIONS: options.doIndicatorMatchSearch });
+      if (options.doIndicatorMatchSearch) {
+        requestOptions = getSearchRequestOptions(entityValue, options);
+      }
+
       requestOptions = getIndicatorBulkMatchRequestOptions(entityType, entityValue, options);
 
       Logger.trace({ requestOptions }, 'Request Options');
@@ -217,6 +219,178 @@ function doLookup(entities, options, cb) {
     cb(null, lookupResults);
   });
 }
+
+// function doLookup(entities, options, cb) {
+//   let lookupResults = [];
+//   let tasks = [];
+//   let processedResult;
+//   const entityLookup = new Map();
+
+//   Logger.debug({ entities, options }, 'doLookup');
+
+//   for (const entity of entities) {
+//     entityLookup.set(entity.value.toLowerCase(), entity);
+//   }
+
+//   const queryValues = getEntityValuesForQuery(entities);
+
+//   for (const [entityType, entityValue] of Object.entries(queryValues)) {
+//     tasks.push((done) => {
+//       let requestOptions;
+//       if (entityType === 'cve') {
+//         requestOptions = getCveSearchOptions(entityValue, options);
+//       } else {
+//         requestOptions = options.doIndicatorMatchSearch
+//           ? getIndicatorBulkMatchRequestOptions(entityType, entityValue, options)
+//           : getSearchRequestOptions(entityValue, options);
+//       }
+
+//       Logger.trace({ requestOptions }, 'Request Options');
+
+//       requestWithDefaults(requestOptions, (error, res, body) => {
+//         let entity;
+
+//         if (Array.isArray(body) && body.length > 0) {
+//           for (const data of body) {
+//             if (data.value.name) {
+//               const resultEntityValue = data.value.name.toLowerCase();
+
+//               if (entityLookup.has(resultEntityValue)) {
+//                 entity = entityLookup.get(resultEntityValue);
+//               }
+//             }
+
+//             processedResult = handleRestError(error, entity, res, body);
+
+//             if (processedResult.error) {
+//               done(processedResult);
+//               return;
+//             }
+//           }
+//         }
+//         Logger.trace({ processedResult }, 'processedResult');
+//         done(null, processedResult);
+//       });
+//     });
+//   }
+
+//   async.parallelLimit(tasks, MAX_PARALLEL_LOOKUPS, (err, results) => {
+//     if (err) {
+//       Logger.error({ err: err }, 'Error');
+//       cb(err);
+//       return;
+//     }
+
+//     results = _.flattenDeep(results);
+//     Logger.trace({ results });
+
+//     results.forEach((result) => {
+//       if (result.body === null || _isMiss(result.body, options)) {
+//         lookupResults.push({
+//           entity: result.entity,
+//           data: null
+//         });
+//       } else {
+//         lookupResults.push({
+//           entity: result.entity,
+//           data: {
+//             summary:
+//               result.entity.type === 'cve' ? _getCveSummaryTags(result, options) : _getSummaryTags(result, options),
+//             details: _getDetails(result.entity, result.body)
+//           }
+//         });
+//       }
+//     });
+
+//     Logger.debug({ lookupResults }, 'Results');
+//     cb(null, lookupResults);
+//   });
+// }
+
+// function doLookup(entities, options, cb) {
+//   let lookupResults = [];
+//   let tasks = [];
+//   let requestOptions;
+//   const entityLookup = new Map();
+
+//   Logger.debug({ entities, options }, 'doLookup');
+
+//   for (const entity of entities) {
+//     entityLookup.set(entity.value.toLowerCase(), entity);
+
+//     // if (entity.type === 'cve') {
+//     //   requestOptions = getCveSearchOptions(entity, options);
+//     // } else if (!options.doIndicatorMatchSearch) {
+//     //   requestOptions = getSearchRequestOptions(entity, options);
+//     // }
+//   }
+
+//   const queryValues = getEntityValuesForQuery(entities);
+
+//   for (const [entityType, entityValue] of Object.entries(queryValues)) {
+//     tasks.push((done) => {
+//       requestOptions = getIndicatorBulkMatchRequestOptions(entityType, entityValue, options);
+//       Logger.trace({ requestOptions }, 'Request Options');
+
+//       requestWithDefaults(requestOptions, (error, res, body) => {
+//         let entity;
+
+//         if (Array.isArray(body) && body.length > 0) {
+//           for (const data of body) {
+//             if (data.value.name) {
+//               const resultEntityValue = data.value.name.toLowerCase();
+
+//               if (entityLookup.has(resultEntityValue)) {
+//                 entity = entityLookup.get(resultEntityValue);
+//               }
+//             }
+
+//             const processedResult = handleRestError(error, entity, res, body);
+
+//             if (processedResult.error) {
+//               done(processedResult);
+//               return;
+//             }
+
+//             Logger.trace({ processedResult }, 'processedResult');
+//             done(null, processedResult);
+//           }
+//         }
+//       });
+//     });
+//   }
+
+//   async.parallelLimit(tasks, MAX_PARALLEL_LOOKUPS, (err, results) => {
+//     if (err) {
+//       Logger.error({ err: err }, 'Error');
+//       cb(err);
+//       return;
+//     }
+
+//     results = _.flattenDeep(results);
+
+//     results.forEach((result) => {
+//       if (result.body === null || _isMiss(result.body, options)) {
+//         lookupResults.push({
+//           entity: result.entity,
+//           data: null
+//         });
+//       } else {
+//         lookupResults.push({
+//           entity: result.entity,
+//           data: {
+//             summary:
+//               result.entity.type === 'cve' ? _getCveSummaryTags(result, options) : _getSummaryTags(result, options),
+//             details: _getDetails(result.entity, result.body)
+//           }
+//         });
+//       }
+//     });
+
+//     Logger.debug({ lookupResults }, 'Results');
+//     cb(null, lookupResults);
+//   });
+// }
 
 function _getDetails(entity, body) {
   if (entity.type === 'cve') {
