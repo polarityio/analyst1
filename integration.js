@@ -7,6 +7,7 @@ const async = require('async');
 const fs = require('fs');
 const fp = require('lodash/fp');
 const _ = require('lodash');
+const { result } = require('lodash');
 
 let Logger;
 let requestWithDefaults;
@@ -131,77 +132,56 @@ const getEntityValuesForQuery = (entities) => {
   return queryParamValues;
 };
 
-// ISSUE: Having a single body being passed in [domain, ]
-const mapResponsesToEntities = async (entities, body) => {
-  const response = [];
-  let currentEntity;
-  let currentResponse;
-
-  Logger.trace({ BODIES_PASSED_IN_FROM_REQUESTS: body });
-
-  for (let i = 0; i < entities.length; i++) {
-    currentEntity = entities[i];
-    for (let j = 0; j < body.length; j++) {
-      currentResponse = body[j];
-      if (currentEntity.value === currentResponse.value.name) {
-        response.push({ entity: currentEntity, body: currentResponse });
-      }
-    }
-  }
-  Logger.trace({ response }, 'Response');
-  return response;
-};
-
-const doLookup = async (entities, options, cb) => {
+function doLookup(entities, options, cb) {
   let lookupResults = [];
   let tasks = [];
-  let response;
   let requestOptions;
-
-  entities.forEach((entity) => {
-    if (entity.type === 'cve') {
-      requestOptions = getCveSearchOptions(entity, options);
-    } else if (!options.doIndicatorMatchSearch) {
-      requestOptions = getSearchRequestOptions(entity, options);
-    }
-  });
+  let processedResult;
+  const entityLookup = new Map();
 
   Logger.debug({ entities, options }, 'doLookup');
+
+  for (const entity of entities) {
+    entityLookup.set(entity.value.toLowerCase(), entity);
+
+    // if (entity.type === 'cve') {
+    //   requestOptions = getCveSearchOptions(entity, options);
+    // } else if (!options.doIndicatorMatchSearch) {
+    //   requestOptions = getSearchRequestOptions(entity, options);
+    // }
+  }
 
   const queryValues = getEntityValuesForQuery(entities);
 
   for (const [entityType, entityValue] of Object.entries(queryValues)) {
-    // entities.forEach(entity => {
-    // iterating over { IPv4: 'ip_1, ip_2', domain: domain }
-    // On_iteration_1 - passing in domain, and 'something.com'
-    // requestOptions = getIndicatorBulkMatchRequestOptions(entityType, entityValue, options);
-
-    // Logger.trace({ requestOptions }, 'Request Options');
-
-    // Iteration_1_request_options - requestOptions":{"method":"GET","uri":"https://partner.analystplatform.com/api/1_0/indicator/bulkMatch","qs":{"value":"something.com","type":"domain"}
-    // requestOptions passed into request
-    // a body is returned for Domain -
-
-    //ISSUE: a body will not be returned fro the other entity groups, on
     tasks.push((done) => {
       requestOptions = getIndicatorBulkMatchRequestOptions(entityType, entityValue, options);
 
       Logger.trace({ requestOptions }, 'Request Options');
-      requestWithDefaults(requestOptions, async (error, res, body) => {
-        if (error) {
-          done(response);
-        }
 
-        response = await mapResponsesToEntities(entities, body);
-        // need to handle error
-        if (error) {
-          return cb({
-            err: error,
-            detail: 'Error making HTTP request'
-          });
+      requestWithDefaults(requestOptions, (error, res, body) => {
+        let entity;
+
+        if (Array.isArray(body) && body.length > 0) {
+          for (const data of body) {
+            if (data.value.name) {
+              const resultEntityValue = data.value.name.toLowerCase();
+
+              if (entityLookup.has(resultEntityValue)) {
+                entity = entityLookup.get(resultEntityValue);
+              }
+            }
+
+            processedResult = handleRestError(error, entity, res, body);
+
+            if (processedResult.error) {
+              done(processedResult);
+              return;
+            }
+          }
         }
-        done(null, response);
-        Logger.trace({ response }, 'builtResponse');
+        Logger.trace({ processedResult }, 'processedResult');
+        done(null, processedResult);
       });
     });
   }
@@ -212,8 +192,7 @@ const doLookup = async (entities, options, cb) => {
       cb(err);
       return;
     }
-    // mapResponsesToEntities returns the values in an array which is pushed into [tasks]
-    // flattening, so the forEach below has access to the values of results in response variable
+
     results = _.flattenDeep(results);
 
     results.forEach((result) => {
@@ -237,7 +216,7 @@ const doLookup = async (entities, options, cb) => {
     Logger.debug({ lookupResults }, 'Results');
     cb(null, lookupResults);
   });
-};
+}
 
 function _getDetails(entity, body) {
   if (entity.type === 'cve') {
