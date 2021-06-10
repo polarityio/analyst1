@@ -153,8 +153,7 @@ function doLookup(entities, options, cb) {
         requestOptions = getCveSearchOptions(entityValue, options);
       }
 
-      Logger.trace({ OPTIONS: options.doIndicatorMatchSearch });
-      if (options.doIndicatorMatchSearch) {
+      if (!options.doIndicatorMatchSearch) {
         requestOptions = getSearchRequestOptions(entityValue, options);
       }
 
@@ -165,6 +164,7 @@ function doLookup(entities, options, cb) {
       requestWithDefaults(requestOptions, (error, res, body) => {
         let entity;
 
+        Logger.trace({ body }, 'BODY');
         if (Array.isArray(body) && body.length > 0) {
           for (const data of body) {
             if (data.value.name) {
@@ -195,8 +195,6 @@ function doLookup(entities, options, cb) {
       cb(err);
       return;
     }
-
-    results = _.flattenDeep(results);
 
     results.forEach((result) => {
       if (result.body === null || _isMiss(result.body, options)) {
@@ -236,7 +234,7 @@ function _getDetails(entity, body) {
     return { results: body.results };
   }
 
-  return { totalResults: 1, results: [body] };
+  return { totalResults: 1, results: body };
 }
 
 function _getCveSummaryTags(result, options) {
