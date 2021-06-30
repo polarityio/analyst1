@@ -109,6 +109,7 @@ function getCveSearchOptions(entityValue, options) {
   return {
     method: 'GET',
     uri: `${url}api/1_0/actor`,
+
     qs: {
       cve: entityValue
     },
@@ -164,7 +165,6 @@ function doLookup(entities, options, cb) {
       requestWithDefaults(requestOptions, (error, res, body) => {
         let entity;
 
-        Logger.trace({ body }, 'BODY');
         if (Array.isArray(body) && body.length > 0) {
           for (const data of body) {
             if (data.value.name) {
