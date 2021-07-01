@@ -1,6 +1,6 @@
 {
   "main": "./integration.js",
-  "name": "alanyst1",
+  "name": "analyst1",
   "version": "3.2.5-beta",
   "private": true,
   "dependencies": {
