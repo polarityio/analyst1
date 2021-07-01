@@ -5,6 +5,8 @@ const config = require('./config/config');
 const get = require('lodash.get');
 const async = require('async');
 const fs = require('fs');
+const fp = require('lodash/fp');
+const _ = require('lodash');
 
 let Logger;
 let requestWithDefaults;
@@ -51,8 +53,8 @@ function startup(logger) {
   requestWithDefaults = request.defaults(defaults);
 }
 
-function _convertPolarityTypeToAnalyst1Type(entity) {
-  switch (entity.type) {
+function _convertPolarityTypeToAnalyst1Type(entityType) {
+  switch (entityType) {
     case 'IPv4':
       return 'ip';
     case 'IPv6':
@@ -66,15 +68,15 @@ function _convertPolarityTypeToAnalyst1Type(entity) {
   }
 }
 
-function getIndicatorMatchRequestOptions(entity, options) {
+function getIndicatorBulkMatchRequestOptions(entityType, entityValue, options) {
   const url = options.url.endsWith('/') ? options.url : `${options.url}/`;
 
   return {
     method: 'GET',
-    uri: `${url}api/1_0/indicator/match`,
+    uri: `${url}api/1_0/indicator/bulkMatch`,
     qs: {
-      value: entity.value,
-      type: _convertPolarityTypeToAnalyst1Type(entity)
+      value: entityValue,
+      type: _convertPolarityTypeToAnalyst1Type(entityType)
     },
     auth: {
       user: options.userName,
@@ -84,14 +86,14 @@ function getIndicatorMatchRequestOptions(entity, options) {
   };
 }
 
-function getSearchRequestOptions(entity, options) {
+function getSearchRequestOptions(entityValue, options) {
   const url = options.url.endsWith('/') ? options.url : `${options.url}/`;
 
   return {
     method: 'GET',
     uri: `${url}api/1_0/indicator`,
     qs: {
-      searchTerm: entity.value
+      searchTerm: entityValue
     },
     auth: {
       user: options.userName,
@@ -101,14 +103,15 @@ function getSearchRequestOptions(entity, options) {
   };
 }
 
-function getCveSearchOptions(entity, options) {
+function getCveSearchOptions(entityValue, options) {
   const url = options.url.endsWith('/') ? options.url : `${options.url}/`;
 
   return {
     method: 'GET',
     uri: `${url}api/1_0/actor`,
+
     qs: {
-      cve: entity.value
+      cve: entityValue
     },
     auth: {
       user: options.userName,
@@ -118,39 +121,73 @@ function getCveSearchOptions(entity, options) {
   };
 }
 
+const getEntityValuesForQuery = (entities) => {
+  const groupedEntities = fp.groupBy('type', entities);
+  const queryParamValues = {};
+
+  for (const [entityType, entityGroup] of Object.entries(groupedEntities)) {
+    const values = entityGroup.map((entity) => entity.value).join(',');
+    queryParamValues[entityType] = `${values}`;
+  }
+  return queryParamValues;
+};
+
 function doLookup(entities, options, cb) {
   let lookupResults = [];
   let tasks = [];
+  let processedResult;
+  const entityLookup = new Map();
 
   Logger.debug({ entities, options }, 'doLookup');
 
-  entities.forEach((entity) => {
-    let requestOptions;
+  for (const entity of entities) {
+    entityLookup.set(entity.value.toLowerCase(), entity);
+  }
 
-    if (entity.type === 'cve') {
-      requestOptions = getCveSearchOptions(entity, options);
-    } else {
-      requestOptions = options.doIndicatorMatchSearch
-        ? getIndicatorMatchRequestOptions(entity, options)
-        : getSearchRequestOptions(entity, options);
-    }
+  const queryValues = getEntityValuesForQuery(entities);
 
-    Logger.trace({ requestOptions }, 'Request Options');
+  for (const [entityType, entityValue] of Object.entries(queryValues)) {
+    tasks.push((done) => {
+      let requestOptions;
 
-    tasks.push(function (done) {
-      requestWithDefaults(requestOptions, function (error, res, body) {
-        Logger.trace({ body }, 'Body');
-        let processedResult = handleRestError(error, entity, res, body);
+      if (entityType === 'cve') {
+        requestOptions = getCveSearchOptions(entityValue, options);
+      }
 
-        if (processedResult.error) {
-          done(processedResult);
-          return;
+      if (!options.doIndicatorMatchSearch) {
+        requestOptions = getSearchRequestOptions(entityValue, options);
+      }
+
+      requestOptions = getIndicatorBulkMatchRequestOptions(entityType, entityValue, options);
+
+      Logger.trace({ requestOptions }, 'Request Options');
+
+      requestWithDefaults(requestOptions, (error, res, body) => {
+        let entity;
+
+        if (Array.isArray(body) && body.length > 0) {
+          for (const data of body) {
+            if (data.value.name) {
+              const resultEntityValue = data.value.name.toLowerCase();
+
+              if (entityLookup.has(resultEntityValue)) {
+                entity = entityLookup.get(resultEntityValue);
+              }
+            }
+
+            processedResult = handleRestError(error, entity, res, body);
+
+            if (processedResult.error) {
+              done(processedResult);
+              return;
+            }
+          }
         }
-
+        Logger.trace({ processedResult }, 'processedResult');
         done(null, processedResult);
       });
     });
-  });
+  }
 
   async.parallelLimit(tasks, MAX_PARALLEL_LOOKUPS, (err, results) => {
     if (err) {
@@ -197,7 +234,7 @@ function _getDetails(entity, body) {
     return { results: body.results };
   }
 
-  return { totalResults: 1, results: [body] };
+  return { totalResults: 1, results: body };
 }
 
 function _getCveSummaryTags(result, options) {
