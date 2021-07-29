@@ -1,11 +1,12 @@
 {
   "main": "./integration.js",
-  "name": "alanyst1",
-  "version": "3.2.4-beta",
+  "name": "analyst1",
+  "version": "3.3.0-beta",
   "private": true,
   "dependencies": {
-    "request": "^2.88.2",
     "async": "^3.2.0",
-    "lodash.get": "^4.4.2"
+    "lodash.groupby": "^4.6.0",
+    "lodash.get": "^4.4.2",
+    "request": "^2.88.2"
   }
 }

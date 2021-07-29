@@ -3,13 +3,14 @@
 const request = require('request');
 const config = require('./config/config');
 const get = require('lodash.get');
+const groupBy = require('lodash.groupby');
 const async = require('async');
 const fs = require('fs');
 
 let Logger;
 let requestWithDefaults;
 
-const MAX_PARALLEL_LOOKUPS = 10;
+const MAX_PARALLEL_LOOKUPS = 5;
 const MAX_ACTORS_IN_SUMMARY = 5;
 
 /**
@@ -51,8 +52,8 @@ function startup(logger) {
   requestWithDefaults = request.defaults(defaults);
 }
 
-function _convertPolarityTypeToAnalyst1Type(entity) {
-  switch (entity.type) {
+function _convertPolarityTypeToAnalyst1Type(entityType) {
+  switch (entityType) {
     case 'IPv4':
       return 'ip';
     case 'IPv6':
@@ -66,15 +67,15 @@ function _convertPolarityTypeToAnalyst1Type(entity) {
   }
 }
 
-function getIndicatorMatchRequestOptions(entity, options) {
+function getIndicatorBulkMatchRequestOptions(entityType, searchString, options) {
   const url = options.url.endsWith('/') ? options.url : `${options.url}/`;
 
   return {
     method: 'GET',
-    uri: `${url}api/1_0/indicator/match`,
+    uri: `${url}api/1_0/indicator/bulkMatch`,
     qs: {
-      value: entity.value,
-      type: _convertPolarityTypeToAnalyst1Type(entity)
+      value: searchString,
+      type: _convertPolarityTypeToAnalyst1Type(entityType)
     },
     auth: {
       user: options.userName,
@@ -84,31 +85,56 @@ function getIndicatorMatchRequestOptions(entity, options) {
   };
 }
 
-function getSearchRequestOptions(entity, options) {
-  const url = options.url.endsWith('/') ? options.url : `${options.url}/`;
+function doCveLookups(cveEntities, options, cb) {
+  const tasks = [];
 
-  return {
-    method: 'GET',
-    uri: `${url}api/1_0/indicator`,
-    qs: {
-      searchTerm: entity.value
-    },
-    auth: {
-      user: options.userName,
-      pass: options.password
-    },
-    json: true
-  };
+  cveEntities.forEach((cve) => {
+    tasks.push(lookupCve.bind(this, cve, options));
+  });
+
+  async.parallelLimit(tasks, MAX_PARALLEL_LOOKUPS, cb);
 }
 
-function getCveSearchOptions(entity, options) {
+/**
+ * Returns a resultObject for a single CVE lookup
+ * @param cveEntity
+ * @param options
+ * @param cb
+ */
+function lookupCve(cveEntity, options, cb) {
+  const requestOptions = getCveSearchOptions(cveEntity, options);
+  Logger.trace({ requestOptions }, 'CVE Lookup Request Options');
+  request(requestOptions, (err, response, body) => {
+    const result = handleRestError(err, response, body);
+    Logger.trace({ result }, 'CVE Search Result');
+    if (result.error) {
+      return cb(result);
+    }
+    if (result.body && result.body.totalResults === 0) {
+      return cb(null, {
+        entity: cveEntity,
+        data: null
+      });
+    }
+
+    cb(null, {
+      entity: cveEntity,
+      data: {
+        summary: _getCveSummaryTags(result.body),
+        details: _getDetails(cveEntity, result.body)
+      }
+    });
+  });
+}
+
+function getCveSearchOptions(cveEntity, options) {
   const url = options.url.endsWith('/') ? options.url : `${options.url}/`;
 
   return {
     method: 'GET',
     uri: `${url}api/1_0/actor`,
     qs: {
-      cve: entity.value
+      cve: cveEntity.value
     },
     auth: {
       user: options.userName,
@@ -118,68 +144,84 @@ function getCveSearchOptions(entity, options) {
   };
 }
 
+function doIndicatorLookups(entityType, entityValues, options, cb) {
+  const lookupResults = [];
+  const entityLookup = entityValues.reduce((entityMap, entity) => {
+    entityMap.set(entity.value.toLowerCase(), entity);
+    return entityMap;
+  }, new Map());
+  const searchString = entityValues.map((entity) => entity.value).join(',');
+  const requestOptions = getIndicatorBulkMatchRequestOptions(entityType, searchString, options);
+  Logger.trace({ requestOptions }, 'Bulk Lookup Request Options');
+  request(requestOptions, (err, response, body) => {
+    const result = handleRestError(err, response, body);
+    if (result.error) {
+      return cb(result);
+    }
+    if (Array.isArray(result.body)) {
+      result.body.forEach((indicatorResult) => {
+        const entityValue = get(indicatorResult, 'value.name', '').toLowerCase();
+        const entity = entityLookup.get(entityValue);
+        if (!entity) {
+          // somehow the returned entity value does not match anything in our entity lookup so
+          // we just skip it
+          return;
+        }
+        entityLookup.delete(entityValue);
+        lookupResults.push({
+          entity,
+          data: {
+            summary: _getSummaryTags(indicatorResult, options),
+            details: _getDetails(entity, indicatorResult)
+          }
+        });
+      });
+
+      // Any entities left in our lookup map did not have a hit so we create a miss for them
+      Array.from(entityLookup.values()).forEach((entity) => {
+        lookupResults.push({
+          entity,
+          data: null
+        });
+      });
+    }
+    cb(null, lookupResults);
+  });
+}
+
 function doLookup(entities, options, cb) {
   let lookupResults = [];
-  let tasks = [];
 
   Logger.debug({ entities, options }, 'doLookup');
 
-  entities.forEach((entity) => {
-    let requestOptions;
+  const groupedEntities = groupBy(entities, 'type');
 
-    if (entity.type === 'cve') {
-      requestOptions = getCveSearchOptions(entity, options);
-    } else {
-      requestOptions = options.doIndicatorMatchSearch
-        ? getIndicatorMatchRequestOptions(entity, options)
-        : getSearchRequestOptions(entity, options);
-    }
-
-    Logger.trace({ requestOptions }, 'Request Options');
-
-    tasks.push(function (done) {
-      requestWithDefaults(requestOptions, function (error, res, body) {
-        Logger.trace({ body }, 'Body');
-        let processedResult = handleRestError(error, entity, res, body);
-
-        if (processedResult.error) {
-          done(processedResult);
-          return;
-        }
-
-        done(null, processedResult);
-      });
-    });
-  });
-
-  async.parallelLimit(tasks, MAX_PARALLEL_LOOKUPS, (err, results) => {
-    if (err) {
-      Logger.error({ err: err }, 'Error');
-      cb(err);
-      return;
-    }
-
-    results.forEach((result) => {
-      if (result.body === null || _isMiss(result.body, options)) {
-        lookupResults.push({
-          entity: result.entity,
-          data: null
+  async.eachOf(
+    groupedEntities,
+    (entityValuesForType, entityType, done) => {
+      if (entityType === 'cve') {
+        doCveLookups(entityValuesForType, options, (err, results) => {
+          if (err) {
+            return done(err);
+          }
+          lookupResults = lookupResults.concat(results);
+          done();
         });
       } else {
-        lookupResults.push({
-          entity: result.entity,
-          data: {
-            summary:
-              result.entity.type === 'cve' ? _getCveSummaryTags(result, options) : _getSummaryTags(result, options),
-            details: _getDetails(result.entity, result.body)
+        doIndicatorLookups(entityType, entityValuesForType, options, (err, results) => {
+          if (err) {
+            return done(err);
           }
+          lookupResults = lookupResults.concat(results);
+          done();
         });
       }
-    });
-
-    Logger.debug({ lookupResults }, 'Results');
-    cb(null, lookupResults);
-  });
+    },
+    (err) => {
+      Logger.trace({ lookupResults }, 'lookupResults');
+      cb(err, lookupResults);
+    }
+  );
 }
 
 function _getDetails(entity, body) {
@@ -200,11 +242,11 @@ function _getDetails(entity, body) {
   return { totalResults: 1, results: [body] };
 }
 
-function _getCveSummaryTags(result, options) {
+function _getCveSummaryTags(body) {
   const tags = [];
-  if (Array.isArray(result.body.results)) {
-    for (let i = 0; i < result.body.results.length && i < MAX_ACTORS_IN_SUMMARY; i++) {
-      const actor = result.body.results[i];
+  if (Array.isArray(body.results)) {
+    for (let i = 0; i < body.results.length && i < MAX_ACTORS_IN_SUMMARY; i++) {
+      const actor = body.results[i];
       const actorName = get(actor, 'title.name');
       if (actorName) {
         tags.push(`Actor: ${actorName}`);
@@ -212,47 +254,27 @@ function _getCveSummaryTags(result, options) {
     }
   }
 
-  if (tags.length < result.body.results.length) {
-    tags.push(`+${result.body.results.length - tags.length} more actors`);
+  if (tags.length < body.results.length) {
+    tags.push(`+${body.results.length - tags.length} more actors`);
   }
 
   return tags;
 }
 
-function _getSummaryTags(result, options) {
+function _getSummaryTags(body, options) {
   const tags = [];
 
-  if (options.doIndicatorMatchSearch) {
-    tags.push(`TLP: ${result.body.tlp}`);
-    tags.push(`Reports: ${result.body.reportCount}`);
-  } else {
-    tags.push(`Results: ${result.body.totalResults}`);
-  }
+  tags.push(`TLP: ${body.tlp}`);
+  tags.push(`Reports: ${body.reportCount}`);
 
-  if (Array.isArray(result.body.actors)) {
-    result.body.actors.forEach((actor) => {
+  if (Array.isArray(body.actors)) {
+    body.actors.forEach((actor) => {
       tags.push(`Actor: ${actor.name}`);
     });
   }
 
   return tags;
 }
-
-const _isMiss = (body, options) => {
-  if (body === null || typeof body === 'undefined') {
-    return true;
-  }
-
-  let noValidReturnValues;
-  if (options.doIndicatorMatchSearch) {
-    // misses are handled via a 404 return code so we don't need to check the payload
-    noValidReturnValues = false;
-  } else {
-    noValidReturnValues = !(Array.isArray(body.results) && body.results.length > 0);
-  }
-
-  return noValidReturnValues;
-};
 
 function getActorById(entity, actor, options, cb) {
   const url = options.url.endsWith('/') ? options.url : `${options.url}/`;
@@ -269,7 +291,7 @@ function getActorById(entity, actor, options, cb) {
 
   Logger.trace({ requestOptions }, 'getActorById');
   requestWithDefaults(requestOptions, (error, result, body) => {
-    let processedResult = handleRestError(error, entity, result, body);
+    let processedResult = handleRestError(error, result, body);
     Logger.trace({ processedResult }, 'Processed Result');
     if (processedResult.error) {
       cb(processedResult);
@@ -309,7 +331,7 @@ function onDetails(lookupResult, options, cb) {
   );
 }
 
-function handleRestError(error, entity, res, body) {
+function handleRestError(error, res, body) {
   let result;
 
   if (error) {
@@ -321,13 +343,11 @@ function handleRestError(error, entity, res, body) {
   if (res.statusCode === 200) {
     // we got data!
     result = {
-      entity: entity,
-      body: body
+      body
     };
   } else if (res.statusCode === 404) {
     // no result found
     result = {
-      entity: entity,
       body: null
     };
   } else if (res.statusCode === 400) {
