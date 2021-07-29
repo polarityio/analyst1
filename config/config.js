@@ -76,16 +76,16 @@ module.exports = {
     {
       key: 'url',
       name: 'Analyst1 API URL',
-      description: 'The base URL for the Analyst1 API to include the schema (https://) and port as needed',
+      description: 'The base URL for the Analyst1 API to include the schema (https://) and port as needed.  This option should be set to "Users can view only".',
       default: '',
       type: 'text',
       userCanEdit: false,
-      adminOnly: true
+      adminOnly: false
     },
     {
       key: 'userName',
-      name: 'User Name',
-      description: 'Valid Analyst1 Username',
+      name: 'Email Address',
+      description: 'Valid Analyst1 Email Address',
       default: '',
       type: 'text',
       userCanEdit: false,
@@ -94,21 +94,11 @@ module.exports = {
     {
       key: 'password',
       name: 'Password',
-      description: 'Valid Analyst1 Password',
+      description: 'Valid Analyst1 Password for the given email address',
       default: '',
       type: 'password',
       userCanEdit: false,
       adminOnly: false
-    },
-    {
-      key: 'doIndicatorMatchSearch',
-      name: 'Match Indicator Values',
-      description:
-        'If checked, the integration will only return results for a matched indicator value.  If unchecked, a full text search will be run for the given indicator.  To prevent large amounts of false positives it is recommended to keep this option checked.',
-      default: true,
-      type: 'boolean',
-      userCanEdit: false,
-      adminOnly: true
     }
   ]
 };

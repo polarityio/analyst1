@@ -1,145 +1,152 @@
 {{#each details.results as |result index|}}
-    {{#if (gt index 0)}}
-      <hr>
-    {{/if}}
-    {{#if (eq block.entity.type "cve")}}
-      <h1 class="p-title">
-        {{fa-icon "info" fixedWidth=true}} Actor: {{result.title.name}}
-      </h1>
-    {{else}}
-      <h1 class="p-title">
-        {{fa-icon "info" fixedWidth=true}} Indicator Details
-      </h1>
-    {{/if}}
-    {{#if (and result.id (eq block.entity.type "cve"))}}
-      <div class="mb-1">
-          <span><a href="{{block.userOptions.url}}/actors/{{result.id}}">View in Analyst1 {{fa-icon "external-link-square" class="external-link-icon"}}</a></span>
-      </div>
-    {{else if result.id}}
-      <div class="mb-1">
-        <span><a href="{{block.userOptions.url}}/indicators/{{result.id}}">Pivot to Indicator #{{inc index}} {{fa-icon "external-link-square" class="external-link-icon"}}</a></span>
-      </div>
-    {{/if}}
-    {{#if result.value.name}}
-      <div>
-        <span class="p-key">Value: </span>
-        <span class="p-value">{{result.value.name}}</span>
-      </div>
-    {{/if}}
-    {{#if result.type}}
-      <div>
-          <span class="p-key">Type: </span>
-          <span class="p-value">{{result.type}}</span>
-      </div>
-    {{/if}}
-    {{#if result.country.name}}
-      <div>
-        <span class="p-key">Country: </span>
-        <span class="p-value">{{result.country.name}}</span>
-      </div>
-    {{/if}}
-    {{#if (or result.activityRange.startDate result.activityRage.endDate)}}
-      <div>
-        <span class="p-key">Activity Range: </span>
-        <span class="p-value">{{result.activityRange.startDate}} to {{result.activityRange.endDate}}</span>
-      </div>
-    {{/if}}
-    {{#unless (eq block.entity.type "cve")}}
-    <div>
-      <span class="p-key">Confidence: </span>
-      <span class="p-value">{{#if result.confidenceLevel}}{{result.confidenceLevel.value}}{{else}}Unspecified{{/if}}</span>
+  {{#if (gt index 0)}}
+    <hr />
+  {{/if}}
+  {{#if (eq block.entity.type 'cve')}}
+    <h1 class='p-title'>
+      {{fa-icon 'info' fixedWidth=true}}
+      Actor:
+      {{result.title.name}}
+    </h1>
+  {{else}}
+    <h1 class='p-title'>
+      {{fa-icon 'info' fixedWidth=true}}
+      Indicator Details
+    </h1>
+  {{/if}}
+  {{#if (and result.id (eq block.entity.type 'cve'))}}
+    <div class='mb-1'>
+      <span><a href='{{webUrl}}actors/{{result.id}}'>View in Analyst1
+          {{fa-icon 'external-link-square' class='external-link-icon'}}</a></span>
     </div>
-    {{/unless}}
-    {{#if result.active}}
-      <div>
-        <span class="p-key">Active Status: </span>
-        <span class="p-value">{{#if result.active}}Yes{{else}}No{{/if}}</span>
-      </div>
-    {{/if}}
-    {{#if result.benign}}
-      <div>
-        <span class="p-key">Benign: </span>
-        <span class="p-value">{{#if result.benign.value}}Yes{{else}}No{{/if}}</span>
-      </div>
-    {{/if}}
-    {{#if result.reportedDates}}
-        <div>
-            <span class="p-key">Reported Date(s): </span>
-            {{#each result.reportedDates as |date dateIndex|}}
-                <span class="p-value">
-                    {{date.date}}{{#if (lt (inc dateIndex) result.reportedDates.length)}}, {{/if}}
-                </span>
-            {{/each}}
-        </div>
-    {{/if}}
-    {{#if result.tlp}}
-      <div>
-          <span class="p-key">TLP: </span>
-          <span class="p-value">{{result.tlp}}</span>
-      </div>
-    {{/if}}
-    {{#if result.tlpResolution}}
-      <div>
-          <span class="p-key">TLP Resolution Status: </span>
-          <span class="p-value">{{result.tlpResolution}}</span>
-      </div>
-    {{/if}}
-    {{#if result.description.name}}
-      <span class="p-key">Description: </span>
-      <pre>{{result.description.name}}</pre>
-    {{/if}}
-    {{#if (gt result.akas.length 0)}}
-      <h1 class="p-title">{{fa-icon "id-badge" fixedWidth=true}} AKAs</h1>
-      {{#each result.akas as | aka |}}
-        <span class="tag">{{aka.name}}</span>
+  {{else if result.id}}
+    <div class='mb-1'>
+      <span><a href='{{webUrl}}indicators/{{result.id}}'>Pivot to Indicator #{{inc index}}
+          {{fa-icon 'external-link-square' class='external-link-icon'}}</a></span>
+    </div>
+  {{/if}}
+  {{#if result.value.name}}
+    <div>
+      <span class='p-key'>Value: </span>
+      <span class='p-value'>{{result.value.name}}</span>
+    </div>
+  {{/if}}
+  {{#if result.type}}
+    <div>
+      <span class='p-key'>Type: </span>
+      <span class='p-value'>{{result.type}}</span>
+    </div>
+  {{/if}}
+  {{#if result.country.name}}
+    <div>
+      <span class='p-key'>Country: </span>
+      <span class='p-value'>{{result.country.name}}</span>
+    </div>
+  {{/if}}
+  {{#if (or result.activityRange.startDate result.activityRage.endDate)}}
+    <div>
+      <span class='p-key'>Activity Range: </span>
+      <span class='p-value'>{{result.activityRange.startDate}} to {{result.activityRange.endDate}}</span>
+    </div>
+  {{/if}}
+  {{#unless (eq block.entity.type 'cve')}}
+    <div>
+      <span class='p-key'>Confidence: </span>
+      <span class='p-value'>{{#if
+          result.confidenceLevel
+        }}{{result.confidenceLevel.value}}{{else}}Unspecified{{/if}}</span>
+    </div>
+  {{/unless}}
+  {{#if result.active}}
+    <div>
+      <span class='p-key'>Active Status: </span>
+      <span class='p-value'>{{#if result.active}}Yes{{else}}No{{/if}}</span>
+    </div>
+  {{/if}}
+  {{#if result.benign}}
+    <div>
+      <span class='p-key'>Benign: </span>
+      <span class='p-value'>{{#if result.benign.value}}Yes{{else}}No{{/if}}</span>
+    </div>
+  {{/if}}
+  {{#if result.reportedDates}}
+    <div>
+      <span class='p-key'>Reported Date(s): </span>
+      {{#each result.reportedDates as |date dateIndex|}}
+        <span class='p-value'>
+          {{date.date}}{{#if (lt (inc dateIndex) result.reportedDates.length)}}, {{/if}}
+        </span>
       {{/each}}
-    {{/if}}
-    {{#if (gt result.actors.length 0)}}
-      <h1 class="p-title">{{fa-icon "user-secret" fixedWidth=true}} Actors</h1>
-      {{#each result.actors as | actor |}}
-        <span class="tag">{{actor.name}}</span>
-      {{/each}}
-    {{/if}}
-    {{#if (gt result.targets.length 0)}}
-      <h1 class="p-title">{{fa-icon "bullseye" fixedWidth=true}} Targets</h1>
-      {{#each result.targets as | target |}}
-        <span class="tag">{{target.name}}</span>
-      {{/each}}
-    {{/if}}
-    {{#if (gt result.attackPatterns.length 0)}}
-      <h1 class="p-title">{{fa-icon "mace" fixedWidth=true}} Attack Patterns</h1>
-      {{#each result.attackPatterns as | pattern |}}
-        <span class="tag">{{pattern.name}}</span>
-      {{/each}}
-    {{/if}}
-    {{#if (gt result.malwares.length 0)}}
-      <h1 class="p-title">{{fa-icon "viruses" fixedWidth=true}} Malware</h1>
-      {{#each result.malwares as | malware |}}
-        <span class="tag">{{malware.name}}</span>
-      {{/each}}
-    {{/if}}
-    {{#if (gt result.malware.length 0)}}
-      <h1 class="p-title">{{fa-icon "viruses" fixedWidth=true}} Malware</h1>
-      {{#each result.malware as | malware |}}
-        <span class="tag">{{malware.name}}</span>
-      {{/each}}
-    {{/if}}
-    {{#if (gt result.fileNames.length 0)}}
-      <h1 class="p-title">{{fa-icon "file" fixedWidth=true}} File Names</h1>
-      {{#each result.fileNames as | file |}}
-        <span class="tag">{{file.name}}</span>
-      {{/each}}
-    {{/if}}
-    {{#if (gt result.fileNames.length 0)}}
-      <h1 class="p-title">{{fa-icon "file" fixedWidth=true}} CVEs</h1>
-      {{#each result.cves as | cve |}}
-        <span class="tag">{{cve.name}}</span>
-      {{/each}}
-    {{/if}}
-    {{#if (gt result.campaigns.length 0)}}
-      <h1 class="p-title">{{fa-icon "bullhorn" fixedWidth=true}} Campaigns</h1>
-      {{#each result.campaigns as | campaign |}}
-        <span class="tag">{{campaign.name}}</span>
-      {{/each}}
-    {{/if}}
+    </div>
+  {{/if}}
+  {{#if result.tlp}}
+    <div>
+      <span class='p-key'>TLP: </span>
+      <span class='p-value'>{{result.tlp}}</span>
+    </div>
+  {{/if}}
+  {{#if result.tlpResolution}}
+    <div>
+      <span class='p-key'>TLP Resolution Status: </span>
+      <span class='p-value'>{{result.tlpResolution}}</span>
+    </div>
+  {{/if}}
+  {{#if result.description.name}}
+    <span class='p-key'>Description: </span>
+    <pre>{{result.description.name}}</pre>
+  {{/if}}
+  {{#if (gt result.akas.length 0)}}
+    <h1 class='p-title'>{{fa-icon 'id-badge' fixedWidth=true}} AKAs</h1>
+    {{#each result.akas as |aka|}}
+      <span class='tag'>{{aka.name}}</span>
+    {{/each}}
+  {{/if}}
+  {{#if (gt result.actors.length 0)}}
+    <h1 class='p-title'>{{fa-icon 'user-secret' fixedWidth=true}} Actors</h1>
+    {{#each result.actors as |actor|}}
+      <span class='tag'>{{actor.name}}</span>
+    {{/each}}
+  {{/if}}
+  {{#if (gt result.targets.length 0)}}
+    <h1 class='p-title'>{{fa-icon 'bullseye' fixedWidth=true}} Targets</h1>
+    {{#each result.targets as |target|}}
+      <span class='tag'>{{target.name}}</span>
+    {{/each}}
+  {{/if}}
+  {{#if (gt result.attackPatterns.length 0)}}
+    <h1 class='p-title'>{{fa-icon 'mace' fixedWidth=true}} Attack Patterns</h1>
+    {{#each result.attackPatterns as |pattern|}}
+      <span class='tag'>{{pattern.name}}</span>
+    {{/each}}
+  {{/if}}
+  {{#if (gt result.malwares.length 0)}}
+    <h1 class='p-title'>{{fa-icon 'viruses' fixedWidth=true}} Malware</h1>
+    {{#each result.malwares as |malware|}}
+      <span class='tag'>{{malware.name}}</span>
+    {{/each}}
+  {{/if}}
+  {{#if (gt result.malware.length 0)}}
+    <h1 class='p-title'>{{fa-icon 'viruses' fixedWidth=true}} Malware</h1>
+    {{#each result.malware as |malware|}}
+      <span class='tag'>{{malware.name}}</span>
+    {{/each}}
+  {{/if}}
+  {{#if (gt result.fileNames.length 0)}}
+    <h1 class='p-title'>{{fa-icon 'file' fixedWidth=true}} File Names</h1>
+    {{#each result.fileNames as |file|}}
+      <span class='tag'>{{file.name}}</span>
+    {{/each}}
+  {{/if}}
+  {{#if (gt result.fileNames.length 0)}}
+    <h1 class='p-title'>{{fa-icon 'file' fixedWidth=true}} CVEs</h1>
+    {{#each result.cves as |cve|}}
+      <span class='tag'>{{cve.name}}</span>
+    {{/each}}
+  {{/if}}
+  {{#if (gt result.campaigns.length 0)}}
+    <h1 class='p-title'>{{fa-icon 'bullhorn' fixedWidth=true}} Campaigns</h1>
+    {{#each result.campaigns as |campaign|}}
+      <span class='tag'>{{campaign.name}}</span>
+    {{/each}}
+  {{/if}}
 {{/each}}
