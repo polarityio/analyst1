@@ -84,8 +84,8 @@ module.exports = {
     },
     {
       key: 'userName',
-      name: 'User Name',
-      description: 'Valid Analyst1 Username',
+      name: 'Email Address',
+      description: 'Valid Analyst1 Email Address',
       default: '',
       type: 'text',
       userCanEdit: false,
@@ -94,7 +94,7 @@ module.exports = {
     {
       key: 'password',
       name: 'Password',
-      description: 'Valid Analyst1 Password',
+      description: 'Valid Analyst1 Password for the given email address',
       default: '',
       type: 'password',
       userCanEdit: false,

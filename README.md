@@ -12,17 +12,13 @@ The Polarity <> Analyst1 integration allows Polarity to get quick identification
 
 The base URL for the Analyst1 API to include the schema (https://) and port as needed
 
-### User Name
+### Email Address
 
-Valid Analyst1 Username
+Valid Analyst1 Email Address
 
 ### Password
 
 Valid Analyst1 Password
-
-### Match Indicator Values
-
-If checked, the integration will only return results for a matched indicator value. If unchecked, a full text search will be run for the given indicator. To prevent large amounts of false positives it is recommended to keep this option checked.
 
 ## Installation Instructions
 
