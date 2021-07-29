@@ -16,12 +16,12 @@
   {{/if}}
   {{#if (and result.id (eq block.entity.type 'cve'))}}
     <div class='mb-1'>
-      <span><a href='{{block.userOptions.url}}/actors/{{result.id}}'>View in Analyst1
+      <span><a href='{{webUrl}}actors/{{result.id}}'>View in Analyst1
           {{fa-icon 'external-link-square' class='external-link-icon'}}</a></span>
     </div>
   {{else if result.id}}
     <div class='mb-1'>
-      <span><a href='{{block.userOptions.url}}/indicators/{{result.id}}'>Pivot to Indicator #{{inc index}}
+      <span><a href='{{webUrl}}indicators/{{result.id}}'>Pivot to Indicator #{{inc index}}
           {{fa-icon 'external-link-square' class='external-link-icon'}}</a></span>
     </div>
   {{/if}}
