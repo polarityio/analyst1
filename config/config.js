@@ -99,16 +99,6 @@ module.exports = {
       type: 'password',
       userCanEdit: false,
       adminOnly: false
-    },
-    {
-      key: 'doIndicatorMatchSearch',
-      name: 'Match Indicator Values',
-      description:
-        'If checked, the integration will only return results for a matched indicator value.  If unchecked, a full text search will be run for the given indicator.  To prevent large amounts of false positives it is recommended to keep this option checked.',
-      default: true,
-      type: 'boolean',
-      userCanEdit: false,
-      adminOnly: true
     }
   ]
 };
