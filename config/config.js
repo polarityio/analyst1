@@ -76,11 +76,11 @@ module.exports = {
     {
       key: 'url',
       name: 'Analyst1 API URL',
-      description: 'The base URL for the Analyst1 API to include the schema (https://) and port as needed',
+      description: 'The base URL for the Analyst1 API to include the schema (https://) and port as needed.  This option should be set to "Users can view only".',
       default: '',
       type: 'text',
       userCanEdit: false,
-      adminOnly: true
+      adminOnly: false
     },
     {
       key: 'userName',
