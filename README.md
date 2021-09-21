@@ -20,6 +20,10 @@ Valid Analyst1 Email Address
 
 Valid Analyst1 Password
 
+### Verified Indicators Only
+
+If checked, the integration will only return verified indicators.  If this option is a per-user setting, the integration cache should be set to per user.
+
 ## Installation Instructions
 
 Installation instructions for integrations are provided on the [PolarityIO GitHub Page](https://polarityio.github.io/).

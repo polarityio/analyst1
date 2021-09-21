@@ -165,16 +165,25 @@ function doIndicatorLookups(entityType, entityValues, options, cb) {
         if (!entity) {
           // somehow the returned entity value does not match anything in our entity lookup so
           // we just skip it
+          Logger.error({ indicatorResult }, 'Indicator Result is missing `value.name`');
           return;
         }
         entityLookup.delete(entityValue);
-        lookupResults.push({
-          entity,
-          data: {
-            summary: _getSummaryTags(indicatorResult, options),
-            details: _getDetails(entity, indicatorResult)
-          }
-        });
+        const details = _getDetails(entity, indicatorResult, options);
+        if (details && details.results.length > 0) {
+          lookupResults.push({
+            entity,
+            data: {
+              summary: _getSummaryTags(indicatorResult, options),
+              details
+            }
+          });
+        } else {
+          lookupResults.push({
+            entity,
+            data: null
+          });
+        }
       });
 
       // Any entities left in our lookup map did not have a hit so we create a miss for them
@@ -224,7 +233,9 @@ function doLookup(entities, options, cb) {
   );
 }
 
-function _getDetails(entity, body) {
+function _getDetails(entity, body, options) {
+  Logger.trace({ body }, '_getDetails');
+
   if (entity.type === 'cve') {
     let actors = body.results.map((actor) => {
       return {
@@ -235,11 +246,14 @@ function _getDetails(entity, body) {
     return { actors, results: [] };
   }
 
+  let result;
   if (Array.isArray(body.results)) {
-    return { results: body.results };
+    result = body.results;
+  } else {
+    result = [body];
   }
 
-  return { totalResults: 1, results: [body] };
+  return { results: options.verifiedOnly ? result.filter((indicator) => indicator.verified) : result };
 }
 
 function _getCveSummaryTags(body) {
