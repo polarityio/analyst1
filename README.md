@@ -22,7 +22,7 @@ Valid Analyst1 Password
 
 ### Verified Indicators Only
 
-If checked, the integration will only return verified indicators.  If this option is a per-user setting, the integration cache should be set to per user.
+If checked, the integration will only return verified indicators.  If this option is a per-user setting, the integration cache should be set to a "Per User Cache" to ensure each user only receives indicators that match their setting.  If this option is shared across users, the cache does not need to be per user.
 
 ## Installation Instructions
 
