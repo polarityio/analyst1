@@ -57,11 +57,17 @@
         }}{{result.confidenceLevel.value}}{{else}}Unspecified{{/if}}</span>
     </div>
   {{/unless}}
-  {{#if result.active}}
+  {{#if (or (eq result.active true)(eq result.active false))}}
     <div>
-      <span class='p-key'>Active Status: </span>
+      <span class='p-key'>Active: </span>
       <span class='p-value'>{{#if result.active}}Yes{{else}}No{{/if}}</span>
     </div>
+  {{/if}}
+  {{#if (or (eq result.verified true)(eq result.verified false))}}
+      <div>
+          <span class='p-key'>Verified: </span>
+          <span class='p-value'>{{#if result.verified}}Yes{{else}}No{{/if}}</span>
+      </div>
   {{/if}}
   {{#if result.benign}}
     <div>

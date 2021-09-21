@@ -5,7 +5,7 @@ module.exports = {
    * @type String
    * @required
    */
-  name: 'Analyst1 Platform',
+  name: 'Analyst1',
   /**
    * The acronym that appears in the notification window when information from this integration
    * is displayed.  Note that the acronym is included as part of each "tag" in the summary information
@@ -15,7 +15,7 @@ module.exports = {
    * @type String
    * @required
    */
-  acronym: 'AN1',
+  acronym: 'A1',
   /**
    * Description for this integration which is displayed in the Polarity integrations user interface
    *
@@ -32,7 +32,7 @@ module.exports = {
    * @type Object
    * @optional
    */
-  styles: ['./styles/ill.less'],
+  styles: ['./styles/styles.less'],
   block: {
     component: {
       file: './components/block.js'
@@ -76,7 +76,8 @@ module.exports = {
     {
       key: 'url',
       name: 'Analyst1 API URL',
-      description: 'The base URL for the Analyst1 API to include the schema (https://) and port as needed.  This option should be set to "Users can view only".',
+      description:
+        'The base URL for the Analyst1 API to include the schema (https://) and port as needed.  This option should be set to "Users can view only".',
       default: '',
       type: 'text',
       userCanEdit: false,
@@ -97,6 +98,15 @@ module.exports = {
       description: 'Valid Analyst1 Password for the given email address',
       default: '',
       type: 'password',
+      userCanEdit: false,
+      adminOnly: false
+    },
+    {
+      key: 'verifiedOnly',
+      name: 'Verified Indicators Only',
+      description: 'If checked, the integration will only return verified indicators.  If this option is a per-user setting, the integration cache should be set to per user.',
+      default: true,
+      type: 'boolean',
       userCanEdit: false,
       adminOnly: false
     }
