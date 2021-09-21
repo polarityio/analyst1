@@ -5,7 +5,7 @@ module.exports = {
    * @type String
    * @required
    */
-  name: 'Analyst1 Platform',
+  name: 'Analyst1',
   /**
    * The acronym that appears in the notification window when information from this integration
    * is displayed.  Note that the acronym is included as part of each "tag" in the summary information
@@ -15,7 +15,7 @@ module.exports = {
    * @type String
    * @required
    */
-  acronym: 'AN1',
+  acronym: 'A1',
   /**
    * Description for this integration which is displayed in the Polarity integrations user interface
    *
