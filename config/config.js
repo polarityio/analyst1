@@ -24,6 +24,15 @@ module.exports = {
    */
   description: 'Analyst1 is a threat intelligence platform',
   entityTypes: ['IPv4', 'IPv6', 'domain', 'hash', 'email', 'cve'],
+  customTypes: [
+    {
+      key: 'extendedEmail',
+      // This regex does not prevent emails that start or end with a `.` or have consecutive `.` characters.
+      // This regex captures emails that Analyst1 treats as valid and does not capture emails with escaped characters or
+      // emails with the local part in quotes which are not supported by Analyst1.
+      regex: /^[a-zA-Z0-9!#$%&'*+\-\/=?^_`{|}~.]{1,63}@[a-zA-Z0-9\-]{1,63}(\.[a-zA-Z]{2,63})+/
+    }
+  ],
   /**
    * Provide custom component logic and template for rendering the integration details block.  If you do not
    * provide a custom template and/or component then the integration will display data as a table of key value

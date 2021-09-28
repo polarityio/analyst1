@@ -12,6 +12,7 @@ let requestWithDefaults;
 
 const MAX_PARALLEL_LOOKUPS = 5;
 const MAX_ACTORS_IN_SUMMARY = 5;
+const CONSECUTIVE_DOTS_REGEX = /\.\./;
 
 /**
  *
@@ -144,8 +145,25 @@ function getCveSearchOptions(cveEntity, options) {
   };
 }
 
+function isValidExtendedEmail(entity){
+  if(entity.value.startsWith('.')){
+    return false;
+  }
+
+  const tokens = entity.value.split('@');
+  if(tokens.length > 0 && tokens[0].endsWith('.')){
+    return false;
+  }
+
+  if(tokens.length > 0 && CONSECUTIVE_DOTS_REGEX.test(tokens[0])){
+    return false;
+  }
+
+  return true;
+}
 function doIndicatorLookups(entityType, entityValues, options, cb) {
   const lookupResults = [];
+
   const entityLookup = entityValues.reduce((entityMap, entity) => {
     entityMap.set(entity.value.toLowerCase(), entity);
     return entityMap;
@@ -201,9 +219,23 @@ function doIndicatorLookups(entityType, entityValues, options, cb) {
 function doLookup(entities, options, cb) {
   let lookupResults = [];
 
-  Logger.debug({ entities, options }, 'doLookup');
+  const entitiesFiltered = entities.reduce((accum, entity) => {
+    // Warning: we are mutating the underlying entity types here so that the custom extended email type is
+    // treated as an email.  We also filter out invalid emails here
+    if(entity.type === 'custom'){
+      entity.type = 'email';
+      if(isValidExtendedEmail(entity)){
+        accum.push(entity);
+      }
+    } else {
+      accum.push(entity);
+    }
+    return accum;
+  }, []);
 
-  const groupedEntities = groupBy(entities, 'type');
+  Logger.trace({ entitiesFiltered, options }, 'doLookup');
+
+  const groupedEntities = groupBy(entitiesFiltered, 'type');
 
   async.eachOf(
     groupedEntities,
