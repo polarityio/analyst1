@@ -99,7 +99,7 @@ module.exports = {
       default: '',
       type: 'text',
       userCanEdit: false,
-      adminOnly: false
+      adminOnly: true
     },
     {
       key: 'password',
@@ -108,7 +108,7 @@ module.exports = {
       default: '',
       type: 'password',
       userCanEdit: false,
-      adminOnly: false
+      adminOnly: true
     },
     {
       key: 'verifiedOnly',
