@@ -1,12 +1,12 @@
 {
   "main": "./integration.js",
   "name": "analyst1",
-  "version": "3.4.1",
+  "version": "3.5.0",
   "private": true,
   "dependencies": {
-    "async": "^3.2.1",
+    "async": "^3.2.4",
     "lodash.groupby": "^4.6.0",
     "lodash.get": "^4.4.2",
-    "request": "^2.88.2"
+    "postman-request": "^2.88.1-postman.31"
   }
 }

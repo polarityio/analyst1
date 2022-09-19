@@ -113,11 +113,67 @@ module.exports = {
     {
       key: 'verifiedOnly',
       name: 'Verified Indicators Only',
-      description: 'If checked, the integration will only return verified indicators.  If this option is a per-user setting, the integration cache should be set to per user.',
-      default: true,
+      description:
+        'If checked, the integration will only return verified indicators.  If this option is a per-user setting, the integration cache should be set to per user.',
+      default: false,
       type: 'boolean',
       userCanEdit: false,
       adminOnly: false
+    },
+    {
+      key: 'enableEvidenceSubmission',
+      name: 'Enable Evidence Submission',
+      description:
+        'If checked, the integration will allow users to submit text based evidence directly from the Overlay Window.',
+      default: false,
+      type: 'boolean',
+      userCanEdit: false,
+      adminOnly: true
+    },
+    {
+      key: 'defaultEvidenceTlp',
+      name: 'Default Evidence TLP',
+      description: 'The default TLP level for submitted evidence.',
+      default: {
+        value: 'undetermined',
+        display: 'Undetermined'
+      },
+      type: 'select',
+      options: [
+        {
+          value: 'undetermined',
+          display: 'Undetermined'
+        },
+        {
+          value: 'white',
+          display: 'White'
+        },
+        {
+          value: 'green',
+          display: 'Green'
+        },
+        {
+          value: 'amber',
+          display: 'Amber'
+        },
+        {
+          value: 'red',
+          display: 'Red'
+        }
+      ],
+      multiple: false,
+      userCanEdit: false,
+      adminOnly: true
+    },
+    {
+      key: 'evidenceSourceId',
+      name: 'Evidence Source Id',
+      description:
+        'The numeric source identifier to be associated with submitted evidence.  We recommend creating a Polarity specific source under "Admin Controls" -> "Manage Sources". If left blank the Evidence Source with be set to unknown.',
+      default: -1,
+      type: 'number',
+      userCanEdit: false,
+      adminOnly: true
     }
   ]
 };

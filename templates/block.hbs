@@ -1,30 +1,133 @@
+{{#if block._state.error}}
+  <div class="alert alert-danger mt-2 error-container">
+      <div class="error-title">{{fa-icon icon="exclamation-triangle" fixedWidth=true}} An Error Occurred</div>
+      <div class="error-item">{{block._state.error}}</div>
+  </div>
+{{/if}}
+{{#if block.userOptions.enableEvidenceSubmission}}
+  <div class="p-action mb-1" {{action (toggle "block._state.showEvidenceSubmission" this)}}>
+    Submit Evidence
+    {{#if block._state.showEvidenceSubmission}}
+      {{fa-icon icon="chevron-up"}}
+    {{else}}
+      {{fa-icon icon="chevron-down"}}
+    {{/if}}
+  </div>
+  {{#if block._state.showEvidenceSubmission}}
+    <div class="evidence-submission">
+      <div class="position-relative textarea-container">
+        {{textarea value=block._state.evidence rows=3 placeholder=(concat "Add evidence to " block.entity.value) disabled=block._state.evidenceIsSubmitting class="search-textarea"}}
+        <div class="query-circuit-breaker-container">
+          TLP:
+          <select onchange={{action (mut block._state.tlp) value="target.value"}} disabled=block._state.evidenceIsSubmitting>
+            {{#each tlpValues as | tlp |}}
+              <option selected={{eq block._state.tlp tlp.value}} value="{{tlp.value}}">{{tlp.display}}</option>
+            {{/each}}
+          </select>
+          {{#if block.userOptions.evidenceSource}}
+            <span>Source: {{block.userOptions.evidenceSource}}</span>
+          {{/if}}
+        </div>
+      </div>
+      <div class="d-flex flex-row justify-content-between align-items-center mt-1">
+        <div class="mr-2">
+          {{#if block._state.submitMessage}}
+            <div class="d-flex">
+              <div class="p-footnote mr-1">
+                {{fa-icon icon="cog" pulse=block._state.evidenceIsSubmitting fixedWidth=true class="icon"}}
+              </div>
+              <div class="p-footnote">
+                {{block._state.submitMessage}}
+              </div>
+            </div>
+          {{/if}}
+          {{#if block._state.evidenceId}}
+            <a href="{{block.userOptions.url}}files/{{block._state.evidenceId}}" class="p-link">
+              View evidence in Analyst1 {{fa-icon icon="external-link-square" fixedWidth=true class="external-link-icon"}}
+            </a>
+          {{/if}}
+        </div>
+        <button {{action "submitEvidence"}} class="btn btn-polarity btn-sm" disabled={{block._state.evidenceIsSubmitting}}>
+          {{#if block._state.searchRunning}}
+            {{fa-icon icon="spinner-third" spin=true fixedWidth=true class="icon"}}
+          {{else}}
+            {{fa-icon icon="upload" fixedWidth=true class="icon"}}
+          {{/if}}
+          Submit
+        </button>
+      </div>
+    </div>
+  {{/if}}
+{{/if}}
 {{#each details.results as |result index|}}
   {{#if (gt index 0)}}
     <hr />
   {{/if}}
   {{#if (eq block.entity.type 'cve')}}
     <h1 class='p-title'>
-      {{fa-icon 'info' fixedWidth=true}}
+      {{fa-icon icon='user-secret' fixedWidth=true}}
       Actor:
       {{result.title.name}}
     </h1>
   {{else}}
     <h1 class='p-title'>
-      {{fa-icon 'info' fixedWidth=true}}
+      {{fa-icon icon='info' fixedWidth=true}}
       Indicator Details
     </h1>
   {{/if}}
   {{#if (and result.id (eq block.entity.type 'cve'))}}
     <div class='mb-1'>
       <span><a href='{{webUrl}}actors/{{result.id}}'>View in Analyst1
-          {{fa-icon 'external-link-square' class='external-link-icon'}}</a></span>
+          {{fa-icon icon='external-link-square' class='external-link-icon'}}</a></span>
     </div>
   {{else if result.id}}
     <div class='mb-1'>
       <span><a href='{{webUrl}}indicators/{{result.id}}'>Pivot to Indicator #{{inc index}}
-          {{fa-icon 'external-link-square' class='external-link-icon'}}</a></span>
+          {{fa-icon icon='external-link-square' class='external-link-icon'}}</a></span>
     </div>
   {{/if}}
+  {{#unless (eq block.entity.type "cve")}}
+    <div class="info-bar mb-1">
+    <div class="info-bar-row">
+      <div class="info-bar-pill">
+        <span class="info-bar-key">Active</span>
+        <span class="info-bar-value">
+          {{#if (eq result.active true)}}
+            Yes
+          {{else if (eq result.active false)}}
+            No
+          {{else}}
+            N/A
+          {{/if}}
+        </span>
+      </div>
+      <div class="info-bar-pill">
+        <span class="info-bar-key">Verified</span>
+        <span class="info-bar-value">
+          {{#if (eq result.verified true)}}
+            Yes
+          {{else if (eq result.verified false)}}
+            No
+          {{else}}
+            N/A
+          {{/if}}
+        </span>
+      </div>
+      <div class="info-bar-pill">
+        <span class="info-bar-key">Benign</span>
+        <span class="info-bar-value">
+          {{#if (eq result.benign.value true)}}
+            Yes
+          {{else if (eq result.benign.value false)}}
+            No
+          {{else}}
+            N/A
+          {{/if}}
+        </span>
+      </div>
+    </div>
+  </div>
+  {{/unless}}
   {{#if result.value.name}}
     <div>
       <span class='p-key'>Value: </span>
@@ -57,32 +160,20 @@
         }}{{result.confidenceLevel.value}}{{else}}Unspecified{{/if}}</span>
     </div>
   {{/unless}}
-  {{#if (or (eq result.active true)(eq result.active false))}}
+  {{#if result._lastReportedDate}}
     <div>
-      <span class='p-key'>Active: </span>
-      <span class='p-value'>{{#if result.active}}Yes{{else}}No{{/if}}</span>
+      <span class='p-key'>Reported Range: </span>
+      <span class='p-value'>
+        {{result._firstReportedDate.date}} to {{result._lastReportedDate.date}}
+      </span>
     </div>
   {{/if}}
-  {{#if (or (eq result.verified true)(eq result.verified false))}}
-      <div>
-          <span class='p-key'>Verified: </span>
-          <span class='p-value'>{{#if result.verified}}Yes{{else}}No{{/if}}</span>
-      </div>
-  {{/if}}
-  {{#if result.benign}}
+  {{#if result._lastActivityDate}}
     <div>
-      <span class='p-key'>Benign: </span>
-      <span class='p-value'>{{#if result.benign.value}}Yes{{else}}No{{/if}}</span>
-    </div>
-  {{/if}}
-  {{#if result.reportedDates}}
-    <div>
-      <span class='p-key'>Reported Date(s): </span>
-      {{#each result.reportedDates as |date dateIndex|}}
-        <span class='p-value'>
-          {{date.date}}{{#if (lt (inc dateIndex) result.reportedDates.length)}}, {{/if}}
-        </span>
-      {{/each}}
+      <span class='p-key'>Activity Range: </span>
+      <span class='p-value'>
+        {{result._firstActivityDate.date}} to {{result._lastActivityDate.date}}
+      </span>
     </div>
   {{/if}}
   {{#if result.tlp}}
@@ -98,61 +189,79 @@
     </div>
   {{/if}}
   {{#if result.description.name}}
-    <span class='p-key'>Description: </span>
-    <pre>{{result.description.name}}</pre>
+    <h1 class='p-title'>Description</h1>
+    <div class="description scrollable-container">{{result.description.name}}</div>
   {{/if}}
   {{#if (gt result.akas.length 0)}}
-    <h1 class='p-title'>{{fa-icon 'id-badge' fixedWidth=true}} AKAs</h1>
-    {{#each result.akas as |aka|}}
-      <span class='tag'>{{aka.name}}</span>
-    {{/each}}
+    <h1 class='p-title'>{{fa-icon icon='id-badge' fixedWidth=true}} AKAs ({{result.akas.length}})</h1>
+    <div class="scrollable-container">
+      {{#each result.akas as |aka|}}
+        <span class='tag'>{{aka.name}}</span>
+      {{/each}}
+    </div>
   {{/if}}
   {{#if (gt result.actors.length 0)}}
-    <h1 class='p-title'>{{fa-icon 'user-secret' fixedWidth=true}} Actors</h1>
-    {{#each result.actors as |actor|}}
-      <span class='tag'>{{actor.name}}</span>
-    {{/each}}
+    <h1 class='p-title'>{{fa-icon icon='user-secret' fixedWidth=true}} Actors ({{result.actors.length}})</h1>
+    <div class="scrollable-container">
+      {{#each result.actors as |actor|}}
+        <span class='tag'>{{actor.name}}</span>
+      {{/each}}
+    </div>
   {{/if}}
   {{#if (gt result.targets.length 0)}}
-    <h1 class='p-title'>{{fa-icon 'bullseye' fixedWidth=true}} Targets</h1>
-    {{#each result.targets as |target|}}
-      <span class='tag'>{{target.name}}</span>
-    {{/each}}
+    <h1 class='p-title'>{{fa-icon icon='bullseye' fixedWidth=true}} Targets ({{result.targets.length}})</h1>
+    <div class="scrollable-container">
+      {{#each result.targets as |target|}}
+        <span class='tag'>{{target.name}}</span>
+      {{/each}}
+    </div>
   {{/if}}
   {{#if (gt result.attackPatterns.length 0)}}
-    <h1 class='p-title'>{{fa-icon 'mace' fixedWidth=true}} Attack Patterns</h1>
-    {{#each result.attackPatterns as |pattern|}}
-      <span class='tag'>{{pattern.name}}</span>
-    {{/each}}
+    <h1 class='p-title'>{{fa-icon icon='mace' fixedWidth=true}} Attack Patterns ({{result.attackPatterns.length}})</h1>
+    <div class="scrollable-container">
+      {{#each result.attackPatterns as |pattern|}}
+        <span class='tag'>{{pattern.name}}</span>
+      {{/each}}
+    </div>
   {{/if}}
   {{#if (gt result.malwares.length 0)}}
-    <h1 class='p-title'>{{fa-icon 'viruses' fixedWidth=true}} Malware</h1>
-    {{#each result.malwares as |malware|}}
-      <span class='tag'>{{malware.name}}</span>
-    {{/each}}
+    <h1 class='p-title'>{{fa-icon icon='viruses' fixedWidth=true}} Malware ({{result.malwares.length}})</h1>
+    <div class="scrollable-container">
+      {{#each result.malwares as |malware|}}
+        <span class='tag'>{{malware.name}}</span>
+      {{/each}}
+    </div>
   {{/if}}
   {{#if (gt result.malware.length 0)}}
-    <h1 class='p-title'>{{fa-icon 'viruses' fixedWidth=true}} Malware</h1>
-    {{#each result.malware as |malware|}}
-      <span class='tag'>{{malware.name}}</span>
-    {{/each}}
+    <h1 class='p-title'>{{fa-icon icon='viruses' fixedWidth=true}} Malware ({{result.malware.length}})</h1>
+    <div class="scrollable-container">
+      {{#each result.malware as |malware|}}
+        <span class='tag'>{{malware.name}}</span>
+      {{/each}}
+    </div>
   {{/if}}
   {{#if (gt result.fileNames.length 0)}}
-    <h1 class='p-title'>{{fa-icon 'file' fixedWidth=true}} File Names</h1>
-    {{#each result.fileNames as |file|}}
-      <span class='tag'>{{file.name}}</span>
-    {{/each}}
+    <h1 class='p-title'>{{fa-icon icon='file' fixedWidth=true}} File Names ({{result.fileNames.length}})</h1>
+    <div class="scrollable-container">
+      {{#each result.fileNames as |file|}}
+        <span class='tag'>{{file.name}}</span>
+      {{/each}}
+    </div>
   {{/if}}
-  {{#if (gt result.fileNames.length 0)}}
-    <h1 class='p-title'>{{fa-icon 'file' fixedWidth=true}} CVEs</h1>
-    {{#each result.cves as |cve|}}
-      <span class='tag'>{{cve.name}}</span>
-    {{/each}}
+  {{#if (gt result.cves.length 0)}}
+    <h1 class='p-title'>{{fa-icon icon='file' fixedWidth=true}} CVEs ({{result.cves.length}})</h1>
+    <div class="scrollable-container">
+      {{#each result.cves as |cve|}}
+        <span class='tag'>{{cve.name}}</span>
+      {{/each}}
+    </div>
   {{/if}}
   {{#if (gt result.campaigns.length 0)}}
-    <h1 class='p-title'>{{fa-icon 'bullhorn' fixedWidth=true}} Campaigns</h1>
+    <h1 class='p-title'>{{fa-icon icon='bullhorn' fixedWidth=true}} Campaigns ({{result.campaigns.length}})</h1>
+    <div class="scrollable-container">
     {{#each result.campaigns as |campaign|}}
       <span class='tag'>{{campaign.name}}</span>
     {{/each}}
+    </div>
   {{/if}}
 {{/each}}
