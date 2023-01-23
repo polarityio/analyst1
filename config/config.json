@@ -2,23 +2,15 @@
   "name": "Analyst1",
   "acronym": "A1",
   "description": "Analyst1 is a threat intelligence platform",
-  "entityTypes": [
-    "IPv4",
-    "IPv6",
-    "domain",
-    "hash",
-    "email",
-    "cve"
-  ],
+  "entityTypes": ["IPv4", "IPv6", "domain", "hash", "email", "cve"],
   "customTypes": [
     {
       "key": "extendedEmail",
       "regex": "^[a-zA-Z0-9!#$%&'*+\\-\\/=?^_`{|}~.]{1,63}@[a-zA-Z0-9\\-]{1,63}(\\.[a-zA-Z]{2,63})+"
     }
   ],
-  "styles": [
-    "./styles/styles.less"
-  ],
+  "defaultColor": "light-pink",
+  "styles": ["./styles/styles.less"],
   "block": {
     "component": {
       "file": "./components/block.js"
