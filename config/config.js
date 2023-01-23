@@ -33,6 +33,7 @@ module.exports = {
       regex: /^[a-zA-Z0-9!#$%&'*+\-\/=?^_`{|}~.]{1,63}@[a-zA-Z0-9\-]{1,63}(\.[a-zA-Z]{2,63})+/
     }
   ],
+  defaultColor: 'light-pink',
   /**
    * Provide custom component logic and template for rendering the integration details block.  If you do not
    * provide a custom template and/or component then the integration will display data as a table of key value
