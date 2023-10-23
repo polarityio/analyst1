@@ -385,7 +385,7 @@ function getActorById(entity, actor, options, cb) {
 
 function onDetails(lookupResult, options, cb) {
   if (lookupResult.entity.type !== 'cve') {
-    cb(null, lookupResult.data);
+    return cb(null, lookupResult.data);
   }
 
   const actors = [];
