@@ -181,13 +181,27 @@ function doIndicatorLookups(entityType, entityValues, options, cb) {
     }
     if (Array.isArray(result.body)) {
       result.body.forEach((indicatorResult) => {
-        const entityValue = get(indicatorResult, 'value.name', '').toLowerCase();
-        const entity = entityLookup.get(entityValue);
+        let entityValue = get(indicatorResult, 'value.name', '').toLowerCase();
+        let entity = entityLookup.get(entityValue);
         if (!entity) {
+          //The primary entity value returned from Analyst1 might not match with the entity value user is specifically looking for
+          //The entity may have associated values that matches with the value being searched
+          if (indicatorResult.hashes) {
+            indicatorResult.hashes.forEach(hash => {
+              const hashValue = entityLookup.get(hash.value.toLowerCase());
+              if (hashValue) {
+                entityValue = hash.value.toLowerCase();
+                entity = hashValue;
+              }
+            })
+          }
+
           // somehow the returned entity value does not match anything in our entity lookup so
           // we just skip it
-          Logger.error({ indicatorResult }, 'Indicator Result is missing `value.name`');
-          return;
+          if (!entity) {
+            Logger.error({ indicatorResult }, 'Indicator Result is missing `value.name`');
+            return;
+          }
         }
         entityLookup.delete(entityValue);
         const details = _getDetails(entity, indicatorResult, options);
