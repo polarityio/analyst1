@@ -184,16 +184,21 @@ function doIndicatorLookups(entityType, entityValues, options, cb) {
         let entityValue = get(indicatorResult, 'value.name', '').toLowerCase();
         let entity = entityLookup.get(entityValue);
         if (!entity) {
-          //The primary entity value returned from Analyst1 might not match with the entity value user is specifically looking for
-          //The entity may have associated values that matches with the value being searched
-          if (indicatorResult.hashes) {
-            indicatorResult.hashes.forEach(hash => {
-              const hashValue = entityLookup.get(hash.value.toLowerCase());
-              if (hashValue) {
-                entityValue = hash.value.toLowerCase();
-                entity = hashValue;
-              }
-            })
+          //The primary hash entity value returned from Analyst1 might not match with the hash value the user is
+          // specifically looking for.  The entity may have associated values that matches with the value
+          // being searched.  As an example, the user may be searching for a SHA256 hash value, but the Analyst1
+          // primary value for that SHA256 is a MD5.  This logic will ensure those results are still returned.
+          if (Array.isArray(indicatorResult.hashes)) {
+            const matchingHash = indicatorResult.hashes.find((hash) => {
+              return entityLookup.has(hash.value.toLowerCase());
+            });
+
+            if (matchingHash) {
+              const matchingHashLower = matchingHash.value.toLowerCase();
+
+              entityValue = matchingHashLower;
+              entity = entityLookup.get(matchingHashLower);
+            }
           }
 
           // somehow the returned entity value does not match anything in our entity lookup so
@@ -476,7 +481,10 @@ function addEvidence(indicator, evidence, tlp, options, cb) {
       evidenceFileClassification: '',
       sourceId: options.evidenceSourceId,
       evidenceFile: {
-        value: Buffer.from(`Evidence for ${indicator}\nSubmitted from Polarity Analyst1 Integration\n\n${evidence}`, 'utf-8'),
+        value: Buffer.from(
+          `Evidence for ${indicator}\nSubmitted from Polarity Analyst1 Integration\n\n${evidence}`,
+          'utf-8'
+        ),
         options: {
           filename: `polarity-${+new Date()}.txt`,
           contentType: 'text/plain'
@@ -592,11 +600,11 @@ function validateOptions(options, cb) {
     });
   }
 
-  if(options.enableEvidenceSubmission.value === true &&
-      +options.evidenceSourceId.value <= -1){
+  if (options.enableEvidenceSubmission.value === true && +options.evidenceSourceId.value <= -1) {
     errors.push({
       key: 'evidenceSourceId',
-      message: 'Evidence source id must be set to a number greater than or equal to zero.  Delete the option value to specify an unknown source.'
+      message:
+        'Evidence source id must be set to a number greater than or equal to zero.  Delete the option value to specify an unknown source.'
     });
   }
 
