@@ -23,7 +23,7 @@ module.exports = {
    * @optional
    */
   description: 'Analyst1 is a threat intelligence platform',
-  entityTypes: ['IPv4', 'IPv6', 'domain', 'hash', 'email', 'cve'],
+  entityTypes: ["IPv4", "IPv6", "domain", "MD5", "SHA1", "SHA256", "email", "cve"],
   customTypes: [
     {
       key: 'extendedEmail',
