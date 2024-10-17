@@ -7,6 +7,6 @@
     "async": "^3.2.5",
     "lodash.groupby": "^4.6.0",
     "lodash.get": "^4.4.2",
-    "postman-request": "^2.88.1-postman.33"
+    "postman-request": "^2.88.1-postman.40"
   }
 }
