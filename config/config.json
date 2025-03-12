@@ -67,7 +67,7 @@
       "default": false,
       "type": "boolean",
       "userCanEdit": false,
-      "adminOnly": true
+      "adminOnly": false
     },
     {
       "key": "defaultEvidenceTlp",
@@ -102,7 +102,7 @@
       ],
       "multiple": false,
       "userCanEdit": false,
-      "adminOnly": true
+      "adminOnly": false
     },
     {
       "key": "evidenceSourceId",

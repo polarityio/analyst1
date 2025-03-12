@@ -125,7 +125,7 @@ module.exports = {
       default: false,
       type: 'boolean',
       userCanEdit: false,
-      adminOnly: true
+      adminOnly: false
     },
     {
       key: 'defaultEvidenceTlp',
@@ -160,7 +160,7 @@ module.exports = {
       ],
       multiple: false,
       userCanEdit: false,
-      adminOnly: true
+      adminOnly: false
     },
     {
       key: 'evidenceSourceId',
