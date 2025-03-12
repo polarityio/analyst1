@@ -27,7 +27,7 @@
     {
       "key": "url",
       "name": "Analyst1 API URL",
-      "description": "The base URL for the Analyst1 API to include the schema (https://) and port as needed.  This option should be set to \"Users can view only\".",
+      "description": "The base URL for the Analyst1 API to include the schema (https://) and port as needed.  This option should be set to \"Lock and show option for all users\".",
       "default": "",
       "type": "text",
       "userCanEdit": false,
@@ -58,21 +58,21 @@
       "default": false,
       "type": "boolean",
       "userCanEdit": false,
-      "adminOnly": false
+      "adminOnly": true
     },
     {
       "key": "enableEvidenceSubmission",
       "name": "Enable Evidence Submission",
-      "description": "If checked, the integration will allow users to submit text based evidence directly from the Overlay Window.",
+      "description": "If checked, the integration will allow users to submit text based evidence directly from the Overlay Window. This option should be set to \"Lock and show option for all users\".",
       "default": false,
       "type": "boolean",
       "userCanEdit": false,
-      "adminOnly": true
+      "adminOnly": false
     },
     {
       "key": "defaultEvidenceTlp",
       "name": "Default Evidence TLP",
-      "description": "The default TLP level for submitted evidence.",
+      "description": "The default TLP level for submitted evidence. This option should be set to \"Lock and show option for all users\".",
       "default": {
         "value": "undetermined",
         "display": "Undetermined"
@@ -102,7 +102,7 @@
       ],
       "multiple": false,
       "userCanEdit": false,
-      "adminOnly": true
+      "adminOnly": false
     },
     {
       "key": "evidenceSourceId",

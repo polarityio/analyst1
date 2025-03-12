@@ -74,10 +74,9 @@ function getIndicatorBulkMatchRequestOptions(entityType, searchString, options) 
 
   return {
     method: 'GET',
-    uri: `${url}api/1_0/indicator/bulkMatch`,
+    uri: `${url}api/1_0/batchCheck`,
     qs: {
-      value: searchString,
-      type: _convertPolarityTypeToAnalyst1Type(entityType)
+      values: searchString
     },
     auth: {
       user: options.userName,
@@ -164,6 +163,31 @@ function isValidExtendedEmail(entity) {
   return true;
 }
 
+function getIndicatorById(indicatorId, options, cb) {
+  const url = options.url.endsWith('/') ? options.url : `${options.url}/`;
+
+  const requestOptions = {
+    method: 'GET',
+    uri: `${url}api/1_0/indicator/${indicatorId}`,
+    auth: {
+      user: options.userName,
+      pass: options.password
+    },
+    json: true
+  };
+
+  request(requestOptions, (err, response, body) => {
+    let processedResult = handleRestError(err, response, body);
+    Logger.trace({ processedResult }, 'Processed Result');
+    if (processedResult.error) {
+      cb(processedResult);
+      return;
+    }
+
+    cb(null, processedResult.body);
+  });
+}
+
 function doIndicatorLookups(entityType, entityValues, options, cb) {
   const lookupResults = [];
 
@@ -179,62 +203,67 @@ function doIndicatorLookups(entityType, entityValues, options, cb) {
     if (result.error) {
       return cb(result);
     }
-    if (Array.isArray(result.body)) {
-      result.body.forEach((indicatorResult) => {
-        let entityValue = get(indicatorResult, 'value.name', '').toLowerCase();
-        let entity = entityLookup.get(entityValue);
-        if (!entity) {
-          //The primary hash entity value returned from Analyst1 might not match with the hash value the user is
-          // specifically looking for.  The entity may have associated values that matches with the value
-          // being searched.  As an example, the user may be searching for a SHA256 hash value, but the Analyst1
-          // primary value for that SHA256 is a MD5.  This logic will ensure those results are still returned.
-          if (Array.isArray(indicatorResult.hashes)) {
-            const matchingHash = indicatorResult.hashes.find((hash) => {
-              return entityLookup.has(hash.value.toLowerCase());
+    if (result.body && Array.isArray(result.body.results)) {
+      async.eachLimit(
+        result.body.results,
+        3,
+        (indicatorResult, done) => {
+          if (get(indicatorResult, 'entity.key', '') === 'INDICATOR') {
+            const entityValue = get(indicatorResult, 'searchedValue', '').toLowerCase();
+            const entity = entityLookup.get(entityValue);
+
+            // Makes it easy to see what entities had misses
+            entityLookup.delete(entityValue);
+            if (!entity) {
+              Logger.error({ indicatorResult }, 'Indicator Result is missing `value.searchedValue`');
+              return;
+            }
+            getIndicatorById(indicatorResult.id, options, (err, indicatorDetails) => {
+              if (err) {
+                return done(err);
+              }
+
+              if (options.verifiedOnly && indicatorDetails.verified === false) {
+                lookupResults.push({
+                  entity,
+                  data: null
+                });
+              } else {
+                lookupResults.push({
+                  entity,
+                  data: {
+                    summary: _getSummaryTags(indicatorDetails, options),
+                    details: _getDetails(entity, indicatorDetails, options)
+                  }
+                });
+              }
+
+              done();
             });
-
-            if (matchingHash) {
-              const matchingHashLower = matchingHash.value.toLowerCase();
-
-              entityValue = matchingHashLower;
-              entity = entityLookup.get(matchingHashLower);
-            }
+          } else {
+            // This is a bulkCheck results that is not an indicator
+            // so we don't do anything with it
+            done();
+          }
+        },
+        (err) => {
+          if (err) {
+            Logger.error({ err }, 'Error in doLookup');
+            return cb(err);
           }
 
-          // somehow the returned entity value does not match anything in our entity lookup so
-          // we just skip it
-          if (!entity) {
-            Logger.error({ indicatorResult }, 'Indicator Result is missing `value.name`');
-            return;
-          }
-        }
-        entityLookup.delete(entityValue);
-        const details = _getDetails(entity, indicatorResult, options);
-        if (details && details.results.length > 0) {
-          lookupResults.push({
-            entity,
-            data: {
-              summary: _getSummaryTags(indicatorResult, options),
-              details
-            }
+          // Any entities left in our lookup map did not have a hit so we create a miss for them
+          Array.from(entityLookup.values()).forEach((entity) => {
+            lookupResults.push({
+              entity,
+              data: null
+            });
           });
-        } else {
-          lookupResults.push({
-            entity,
-            data: null
-          });
-        }
-      });
 
-      // Any entities left in our lookup map did not have a hit so we create a miss for them
-      Array.from(entityLookup.values()).forEach((entity) => {
-        lookupResults.push({
-          entity,
-          data: null
-        });
-      });
+          cb(null, lookupResults);
+        }
+      );
     }
-    cb(null, lookupResults);
   });
 }
 
@@ -282,16 +311,24 @@ function doLookup(entities, options, cb) {
     },
     (err) => {
       Logger.trace({ lookupResults }, 'lookupResults');
+      if (err) {
+        Logger.error(err, 'Error in doLookup');
+      }
       cb(err, lookupResults);
     }
   );
 }
 
-function _getDetails(entity, body, options) {
-  Logger.trace({ body }, '_getDetails');
+
+function parseErrorToReadableJSON(error) {
+  return JSON.parse(JSON.stringify(error, Object.getOwnPropertyNames(error)));
+}
+
+function _getDetails(entity, searchResult, options) {
+  Logger.trace({ searchResult }, '_getDetails');
 
   if (entity.type === 'cve') {
-    let actors = body.results.map((actor) => {
+    let actors = searchResult.results.map((actor) => {
       return {
         name: get(actor, 'title.name', 'No Name'),
         id: get(actor, 'id', null)
@@ -301,8 +338,8 @@ function _getDetails(entity, body, options) {
   }
 
   let result;
-  if (Array.isArray(body.results)) {
-    result = body.results.map((result) => {
+  if (Array.isArray(searchResult)) {
+    result = searchResult.map((result) => {
       if (Array.isArray(result.reportedDates)) {
         result._firstReportedDate = result.reportedDates[0];
         result._lastReportedDate = result.reportedDates[result.reportedDates.length - 1];
@@ -314,18 +351,18 @@ function _getDetails(entity, body, options) {
       return result;
     });
   } else {
-    if (Array.isArray(body.reportedDates)) {
-      body._firstReportedDate = body.reportedDates[0];
-      body._lastReportedDate = body.reportedDates[body.reportedDates.length - 1];
+    if (Array.isArray(searchResult.reportedDates)) {
+      searchResult._firstReportedDate = searchResult.reportedDates[0];
+      searchResult._lastReportedDate = searchResult.reportedDates[searchResult.reportedDates.length - 1];
     }
-    if (Array.isArray(body.activityDates)) {
-      body._firstActivityDate = body.activityDates[0];
-      body._lastActivityDate = body.activityDates[body.activityDates.length - 1];
+    if (Array.isArray(searchResult.activityDates)) {
+      searchResult._firstActivityDate = searchResult.activityDates[0];
+      searchResult._lastActivityDate = searchResult.activityDates[searchResult.activityDates.length - 1];
     }
-    result = [body];
+    result = [searchResult];
   }
 
-  return { results: options.verifiedOnly ? result.filter((indicator) => indicator.verified) : result };
+  return { results: result };
 }
 
 function _getCveSummaryTags(body) {
@@ -547,8 +584,8 @@ function handleRestError(error, res, body) {
 
   if (error) {
     return {
-      error: error,
-      detail: 'HTTP Request Error'
+      error: parseErrorToReadableJSON(error),
+      detail: `HTTP Request Error${error.code ? ': ' + error.code : ''}`
     };
   }
   if (res.statusCode === 200) {
@@ -565,6 +602,11 @@ function handleRestError(error, res, body) {
     result = {
       error: body,
       detail: '400 - Bad Request Parameters'
+    };
+  } else if (res.statusCode === 401) {
+    result = {
+      error: body,
+      detail: '401 - Unauthorized: Ensure your credentials are valid'
     };
   } else {
     // unexpected status code
