@@ -19,7 +19,7 @@
         {{textarea value=block._state.evidence rows=3 placeholder=(concat "Add evidence to " block.entity.value) disabled=block._state.evidenceIsSubmitting class="search-textarea"}}
         <div class="query-circuit-breaker-container">
           TLP:
-          <select onchange={{action (mut block._state.tlp) value="target.value"}} disabled=block._state.evidenceIsSubmitting>
+          <select onchange={{action (mut block._state.tlp) value="target.value"}} disabled={{block._state.evidenceIsSubmitting}}>
             {{#each tlpValues as | tlp |}}
               <option selected={{eq block._state.tlp tlp.value}} value="{{tlp.value}}">{{tlp.display}}</option>
             {{/each}}

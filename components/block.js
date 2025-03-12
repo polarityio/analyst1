@@ -31,6 +31,7 @@ polarity.export = PolarityComponent.extend({
       this.set('block._state', {});
       this.set('block._state.evidence', '');
       this.set('block._state.showEvidenceSubmission', false);
+      this.set('block._state.evidenceIsSubmitting', false);
       this.set('block._state.tlp', this.get('block.userOptions.defaultEvidenceTlp.value'));
     }
 
