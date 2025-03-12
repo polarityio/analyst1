@@ -115,13 +115,13 @@ module.exports = {
       default: false,
       type: 'boolean',
       userCanEdit: false,
-      adminOnly: false
+      adminOnly: true
     },
     {
       key: 'enableEvidenceSubmission',
       name: 'Enable Evidence Submission',
       description:
-        'If checked, the integration will allow users to submit text based evidence directly from the Overlay Window.',
+        'If checked, the integration will allow users to submit text based evidence directly from the Overlay Window. This option should be set to \"Users can view only\".',
       default: false,
       type: 'boolean',
       userCanEdit: false,
@@ -130,7 +130,7 @@ module.exports = {
     {
       key: 'defaultEvidenceTlp',
       name: 'Default Evidence TLP',
-      description: 'The default TLP level for submitted evidence.',
+      description: 'The default TLP level for submitted evidence. This option should be set to \"Users can view only\".',
       default: {
         value: 'undetermined',
         display: 'Undetermined'
