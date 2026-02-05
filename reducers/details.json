@@ -1,0 +1,61 @@
+{
+  "root": {
+    "path": "",
+    "on_null": "return_empty"
+  },
+  "pipeline": [
+    {
+      "op": "copy",
+      "from": "results[].value.name",
+      "to": "reduced_results.results_value_name"
+    },
+    {
+      "op": "copy",
+      "from": "results[].type",
+      "to": "reduced_results.results_type"
+    },
+    {
+      "op": "copy",
+      "from": "results[]._firstReportedDate.date",
+      "to": "reduced_results.results_first_reported_date"
+    },
+    {
+      "op": "copy",
+      "from": "results[].confidenceLevel.value",
+      "to": "reduced_results.results_confidence_level"
+    },
+    {
+      "op": "copy",
+      "from": "results[].active",
+      "to": "reduced_results.results_active"
+    },
+    {
+      "op": "copy",
+      "from": "results[].verified",
+      "to": "reduced_results.results_verified"
+    },
+    {
+      "op": "copy",
+      "from": "results[]._lastActivityDate.date",
+      "to": "reduced_results.results_last_activity_date"
+    },
+    {
+      "op": "copy",
+      "from": "results[].tlp",
+      "to": "reduced_results.results_tlp"
+    },
+    {
+      "op": "copy",
+      "from": "results[].description.name",
+      "to": "reduced_results.results_description"
+    },
+    {
+      "op": "prune",
+      "strategy": "empty_values",
+      "target": "reduced_results"
+    }
+  ],
+  "output": {
+    "result": "$working.reduced_results"
+  }
+}

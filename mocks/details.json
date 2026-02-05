@@ -1,0 +1,223 @@
+{
+  "results": [
+    {
+      "id": "1234567",
+      "value": {
+        "name": "malicious-domain.com",
+        "type": "domain"
+      },
+      "type": "domain",
+      "active": true,
+      "verified": true,
+      "benign": {
+        "value": false,
+        "name": "Malicious"
+      },
+      "confidenceLevel": {
+        "value": "high",
+        "name": "High Confidence"
+      },
+      "reportCount": 12,
+      "reportedDates": [
+        {
+          "date": "2024-01-15T10:30:00Z",
+          "timestamp": 1705318200000
+        },
+        {
+          "date": "2024-06-20T14:22:00Z",
+          "timestamp": 1718894520000
+        }
+      ],
+      "_firstReportedDate": {
+        "date": "2024-01-15T10:30:00Z",
+        "timestamp": 1705318200000
+      },
+      "_lastReportedDate": {
+        "date": "2024-06-20T14:22:00Z",
+        "timestamp": 1718894520000
+      },
+      "activityDates": [
+        {
+          "date": "2024-02-10T08:15:00Z",
+          "timestamp": 1707553500000
+        },
+        {
+          "date": "2024-12-15T16:45:00Z",
+          "timestamp": 1734280500000
+        }
+      ],
+      "_firstActivityDate": {
+        "date": "2024-02-10T08:15:00Z",
+        "timestamp": 1707553500000
+      },
+      "_lastActivityDate": {
+        "date": "2024-12-15T16:45:00Z",
+        "timestamp": 1734280500000
+      },
+      "tlp": "amber",
+      "tlpResolution": "pending",
+      "description": {
+        "name": "Command and control domain associated with APT28 campaigns targeting government entities. Known to host phishing infrastructure and serve malware payloads.",
+        "type": "text"
+      },
+      "country": {
+        "name": "Russian Federation",
+        "code": "RU"
+      },
+      "actors": [
+        {
+          "id": "actor-101",
+          "name": "APT28",
+          "aliases": ["Fancy Bear", "Sofacy"]
+        },
+        {
+          "id": "actor-205",
+          "name": "Sandworm",
+          "aliases": ["VOODOO BEAR"]
+        }
+      ],
+      "malwares": [
+        {
+          "id": "malware-301",
+          "name": "X-Agent",
+          "type": "backdoor"
+        },
+        {
+          "id": "malware-302",
+          "name": "Sofacy",
+          "type": "trojan"
+        }
+      ],
+      "attackPatterns": [
+        {
+          "id": "attack-401",
+          "name": "Spearphishing Attachment",
+          "mitreId": "T1566.001"
+        },
+        {
+          "id": "attack-402",
+          "name": "Command and Control",
+          "mitreId": "T1071"
+        }
+      ],
+      "targets": [
+        {
+          "id": "target-501",
+          "name": "Government Entities",
+          "sector": "public"
+        },
+        {
+          "id": "target-502",
+          "name": "Defense Contractors",
+          "sector": "defense"
+        }
+      ],
+      "campaigns": [
+        {
+          "id": "campaign-601",
+          "name": "Operation Ghost",
+          "startDate": "2024-01-01"
+        }
+      ],
+      "cves": [
+        {
+          "id": "cve-701",
+          "name": "CVE-2024-1234",
+          "severity": "critical"
+        }
+      ],
+      "fileNames": [
+        {
+          "name": "invoice.pdf.exe",
+          "hash": "a1b2c3d4e5f6"
+        }
+      ],
+      "akas": [
+        {
+          "name": "malicious-alt-domain.net"
+        },
+        {
+          "name": "evil-domain.org"
+        }
+      ],
+      "activityRange": {
+        "startDate": "2024-02-10",
+        "endDate": "2024-12-15"
+      },
+      "sourceReferences": [
+        {
+          "id": "ref-801",
+          "source": "Analyst1 Research",
+          "url": "https://analyst1.com/reports/123"
+        }
+      ],
+      "tags": ["phishing", "c2", "apt", "espionage"],
+      "severity": "high",
+      "riskScore": 85,
+      "lastUpdated": "2024-12-20T10:00:00Z",
+      "createdDate": "2024-01-15T09:00:00Z"
+    },
+    {
+      "id": "7654321",
+      "value": {
+        "name": "suspicious-ip.com",
+        "type": "domain"
+      },
+      "type": "domain",
+      "active": false,
+      "verified": false,
+      "benign": {
+        "value": null,
+        "name": "Unknown"
+      },
+      "confidenceLevel": {
+        "value": "medium",
+        "name": "Medium Confidence"
+      },
+      "reportCount": 3,
+      "reportedDates": [
+        {
+          "date": "2023-11-01T12:00:00Z",
+          "timestamp": 1698840000000
+        }
+      ],
+      "_firstReportedDate": {
+        "date": "2023-11-01T12:00:00Z",
+        "timestamp": 1698840000000
+      },
+      "_lastReportedDate": {
+        "date": "2023-11-01T12:00:00Z",
+        "timestamp": 1698840000000
+      },
+      "activityDates": [],
+      "tlp": "white",
+      "description": {
+        "name": "Previously flagged domain with limited recent activity. May have been repurposed or abandoned.",
+        "type": "text"
+      },
+      "country": {
+        "name": "United States",
+        "code": "US"
+      },
+      "actors": [],
+      "malwares": [],
+      "attackPatterns": [],
+      "targets": [],
+      "campaigns": [],
+      "cves": [],
+      "fileNames": [],
+      "akas": [],
+      "tags": ["historical"],
+      "severity": "low",
+      "riskScore": 25,
+      "lastUpdated": "2023-12-01T10:00:00Z",
+      "createdDate": "2023-11-01T11:00:00Z"
+    }
+  ],
+  "totalResults": 2,
+  "apiVersion": "1.0",
+  "queryMetadata": {
+    "executionTime": 245,
+    "cached": false
+  }
+}
